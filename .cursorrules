@@ -1,0 +1,129 @@
+
+# Neovim Plugin Lua AI Coding Agent Guidelines
+
+You are an expert in Neovim plugins programming, with deep knowledge of its unique features and common use cases in neovim plugin Development.
+
+
+## Key Principles
+- Write idiomatic Lua code optimized for Neovim's runtime and API ecosystem.
+- Leverage the latest Neovim APIs (`vim.api`, `vim.fn`, `vim.treesitter`, `vim.loop`, etc.).
+- Use `Luals Annotations` for comprehensive API documentation and type checking.
+- Ensure code is modular, maintainable, and easy to extend.
+- Optimize for performance while maintaining readability and clarity.
+
+---
+
+## Lua-Specific Guidelines for Neovim Plugins
+
+### Naming Conventions
+- Use `snake_case` for variables and functions.
+- Use `PascalCase` for modules or public classes.
+- Use `UPPERCASE` for constants.
+- Prefix private functions or variables with `_`.
+- Use descriptive and purpose-revealing names.
+
+### Code Organization
+- Group related functionality into modules.
+- Use `require()` for dependencies, ensuring proper file modularity.
+- Keep functions local to a module unless explicitly exported.
+- Separate plugin logic, configuration, and mappings into distinct files or namespaces.
+- Use clear comments and `Luals Annotations` for all exported APIs.
+
+---
+
+## Neovim-Specific Best Practices
+
+### API Usage
+- Prefer `vim.api.nvim_*` over deprecated Vimscript commands.
+- Use `vim.keymap.set()` for defining keymaps instead of `vim.api.nvim_set_keymap`.
+- Manage user options with `vim.opt` and buffer-specific settings with `vim.bo` or `vim.wo`.
+- Use `vim.notify()` for user notifications instead of `print()`.
+
+### Asynchronous Operations
+- Use `vim.loop` for performance-critical async tasks.
+- Schedule UI updates with `vim.schedule_wrap()` or `vim.defer_fn()`.
+- Avoid blocking the main thread—favor async functions when dealing with I/O or long computations.
+
+### Luals Annotations
+- Use `---@type` for type definitions.
+- Document APIs with `---@param` and `---@return` for improved developer experience.
+- Add `---@class` for structured objects or configurations.
+- Example:
+  ```lua
+  --- Resize the current window.
+  ---@param width number The desired width of the window.
+  ---@return boolean success True if resizing was successful.
+  local function resize_window(width)
+      vim.api.nvim_win_set_width(0, width)
+      return true
+  end
+  ```
+
+---
+
+## Error Handling
+- Use `pcall` or `xpcall` for protected calls, especially when interacting with external commands.
+- Provide meaningful error messages via `vim.notify`.
+- Use `assert()` for preconditions and validate user input explicitly.
+
+---
+
+## Performance Optimization
+- Use local variables for frequently accessed APIs (e.g., `local api = vim.api`).
+- Cache plugin state in Lua tables rather than querying repeatedly.
+- Avoid creating tables or closures inside loops when possible.
+- Use `table.concat()` for string concatenation.
+- Minimize redraws with `vim.api.nvim_command('redraw')` when updating UI in loops.
+
+---
+
+## Memory Management
+- Clean up state and resources on plugin unload (`VimLeave` or similar events).
+- Avoid global state unless absolutely necessary (use `M` or `_G` cautiously).
+- Use weak tables for caching ephemeral data (`setmetatable({}, { __mode = "k" })`).
+
+---
+
+## Testing
+- Write unit tests with [plenary.nvim](https://github.com/nvim-lua/plenary.nvim) or a similar framework.
+- Mock Neovim API calls for isolated testing.
+- Write integration tests for user-facing functionality.
+- Use `vim.loop.hrtime()` for profiling performance-critical functions.
+
+---
+
+## Documentation
+- Use `Luals Annotations` extensively to define types, parameters, and return values.
+- Maintain `README.md` with clear setup instructions and usage examples.
+- Use `help` files for in-editor documentation (`:help myplugin`).
+
+---
+
+## Debugging
+- Use `vim.inspect()` for debugging complex structures.
+- Add verbose logging with `vim.notify()` or `print()`.
+- Use Neovim's built-in profiling (`:profile`) for performance issues.
+- Leverage plugins like `nvim-dev.nvim` for runtime insights.
+
+---
+
+## Common Patterns
+- Use `require('myplugin.module')` for modular design.
+- Define lazy-loaded autocommands and keymaps in `plugin/*.lua` files.
+- Create extensible configurations:
+  ```lua
+  local M = {}
+  M.config = {
+      option1 = true,
+      option2 = "default",
+  }
+
+  function M.setup(user_config)
+      M.config = vim.tbl_deep_extend("force", M.config, user_config or {})
+  end
+
+  return M
+  ```
+
+
+    
