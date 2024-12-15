@@ -1,11 +1,11 @@
 local M = {}
 
--- Create user command for sending text
-vim.api.nvim_create_user_command("AiderSend", function(opts)
-  M.send(opts.args)
-end, {
-  nargs = 1,
-  desc = "Send text to aider buffer",
-})
+function M.start(args)
+  require("aider.aider").start(args)
+end
+
+function M.send(text)
+  require("aider.aider").send(text)
+end
 
 return M

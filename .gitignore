@@ -5,3 +5,5 @@
 /doc/tags
 .aider.*
 
+.aider*
+.env

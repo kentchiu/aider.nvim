@@ -26,14 +26,6 @@ function M.cleanup()
   -- state.initialized = false
 end
 
--- Create user command for sending text
-vim.api.nvim_create_user_command("AiderSend", function(opts)
-  M.send(opts.args)
-end, {
-  nargs = 1,
-  desc = "Send text to aider buffer",
-})
-
 function M.start(args)
   print("Starting aider with args:")
   print(vim.inspect(args))
