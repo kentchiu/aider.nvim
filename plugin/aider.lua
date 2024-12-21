@@ -11,3 +11,10 @@ end, {
   nargs = "*",
   desc = "Send text to Aider",
 })
+
+vim.api.nvim_create_user_command("AiderCommand", function(opts)
+  require("aider.aider").command(opts.fargs[1], opts.fargs[2])
+end, {
+  nargs = "*",
+  desc = "Run Aider Command",
+})

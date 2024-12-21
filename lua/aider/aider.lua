@@ -1,4 +1,9 @@
+---@class Aider
 local M = {}
+
+---@class AiderState
+---@field buf number|nil Buffer ID for the aider terminal
+---@field initialized boolean Whether aider has been initialized
 
 -- Store buffer ID and state
 local state = {
@@ -6,19 +11,21 @@ local state = {
   initialized = false,
 }
 
--- Get aider buffer
+---Get the aider buffer ID
+---@return number|nil buffer Buffer ID of the aider terminal
 function M.get_buffer()
   return state.buf
 end
 
--- Check if aider is initialized
+---Check if aider is initialized
+---@return boolean initialized Whether aider has been initialized
 function M.is_initialized()
   return state.initialized
 end
 
--- Clean up aider state
+---Clean up aider state and close buffer
+---@return nil
 function M.cleanup()
-  print("🟥[23]: init.lua:20: M.cleanup=" .. vim.inspect(M.cleanup))
   if state.buf and vim.api.nvim_buf_is_valid(state.buf) then
     vim.api.nvim_buf_delete(state.buf, { force = true })
   end
@@ -26,15 +33,16 @@ function M.cleanup()
   -- state.initialized = false
 end
 
+---Start the aider terminal
+---@param args table|nil Optional arguments for aider
+---@return nil
 function M.start(args)
-  print("Starting aider with args:")
-  print(vim.inspect(args))
-
   -- Clean up any existing buffer
   M.cleanup()
 
   -- Create a new buffer for the terminal
   state.buf = vim.api.nvim_create_buf(false, true)
+  print("🟥[31]: aider.lua:33: state.buf=" .. vim.inspect(state.buf))
 
   -- Split window at bottom and set its height
   vim.cmd("botright split")
@@ -51,25 +59,37 @@ function M.start(args)
 
   -- Mark as initialized
   state.initialized = true
-
-  -- Set up cleanup on VimLeave
-  -- vim.api.nvim_create_autocmd("VimLeave", {
-  --   callback = M.cleanup,
-  --   desc = "Cleanup aider buffer on exit",
-  -- })
 end
 
--- Send text to the aider buffer
+---Send text to the aider buffer
+---@param text string Text to send to aider
+---@return nil
 function M.send(text)
-  print("🟥[22]: init.lua:75: state=" .. vim.inspect(state))
+  print("🟥[29]: aider.lua:70: text=" .. vim.inspect(text))
   if not state.initialized then
     vim.notify("Aider buffer not initialized. Call start() first.", vim.log.levels.ERROR)
     return
   end
 
-  print("🟥[21]: init.lua:81: state.buf=" .. vim.inspect(state.buf))
   -- Send text to terminal followed by Enter
   vim.api.nvim_chan_send(vim.bo[state.buf].channel, text)
+end
+
+---Run an aider command
+---@param command string Command name without leading slash (e.g. "add", "drop", "ask")
+---@param args string|nil Optional arguments for the command
+---@return nil
+function M.command(command, args)
+  print("🟥[25]: aider.lua:76: command=" .. command .. ", args:" .. vim.inspect(args))
+
+  local cmd = "/" .. command
+  if args then
+    cmd = cmd .. " " .. args .. "\n"
+  else
+    cmd = cmd .. " " .. "\n"
+  end
+  print("🟥[28]: aider.lua:83: cmd=" .. vim.inspect(cmd))
+  M.send(cmd)
 end
 
 return M
