@@ -1,18 +1,16 @@
 ---@class AiderInit
 local M = {}
 
----Start aider terminal
----@param args table|nil Optional arguments for aider
----@return nil
-function M.start(args)
-  require("aider.aider").start(args)
+function M.toggle()
+  require("aider.terminal").toggle()
 end
 
----Send text to aider
----@param text string Text to send to aider
----@return nil
-function M.send(text)
-  require("aider.aider").send(text)
+function M.send(ask)
+  require("aider.actions").send(ask)
+end
+
+function M.fix()
+  require("aider.actions").fix()
 end
 
 --- Watch current buffer's file for changes and auto reload
@@ -21,6 +19,7 @@ end
 --- 1. Notifies the user
 --- 2. Reloads the file if buffer is not modified
 --- @note Uses vim.uv (libuv) for file system events
+-- TODO: Move out from init.lua
 function M.watch_file()
   local function watch_file()
     local uv = vim.uv -- Use vim.uv for Neovim 0.10+
@@ -53,21 +52,6 @@ function M.watch_file()
     pattern = "*",
     callback = watch_file,
   })
-end
-
-function M.fix()
-  local line = vim.api.nvim_win_get_cursor(0)[1] - 1 -- 行号从 0 开始
-  local diagnostics = vim.diagnostic.get(0, { lnum = line })
-  if #diagnostics > 0 then
-    local filename = vim.fn.expand("%")
-    M.send("/add " .. filename .. "\n")
-    for _, diagnostic in ipairs(diagnostics) do
-      local problem = vim.inspect(diagnostic):gsub("\n%s*", " ")
-      M.send("Fix this diagnostic: " .. problem .. "\n")
-    end
-  else
-    vim.notify("No diagnostics for current line", vim.log.levels.WARN)
-  end
 end
 
 return M
