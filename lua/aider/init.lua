@@ -36,7 +36,6 @@ function M.watch_file()
       -- Schedule UI updates to run on the main thread
       -- This ensures buffer operations happen safely in Neovim's event loop
       vim.schedule(function()
-        vim.notify("File has changed:", vim.log.levels.INFO)
         if vim.bo.modified then
         else
           -- Reload the buffer content directly from disk
@@ -54,6 +53,21 @@ function M.watch_file()
     pattern = "*",
     callback = watch_file,
   })
+end
+
+function M.fix()
+  local line = vim.api.nvim_win_get_cursor(0)[1] - 1 -- 行号从 0 开始
+  local diagnostics = vim.diagnostic.get(0, { lnum = line })
+  if #diagnostics > 0 then
+    local filename = vim.fn.expand("%")
+    M.send("/add " .. filename .. "\n")
+    for _, diagnostic in ipairs(diagnostics) do
+      local problem = vim.inspect(diagnostic):gsub("\n%s*", " ")
+      M.send("Fix this diagnostic: " .. problem .. "\n")
+    end
+  else
+    vim.notify("No diagnostics for current line", vim.log.levels.WARN)
+  end
 end
 
 return M

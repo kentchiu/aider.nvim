@@ -42,11 +42,10 @@ function M.start(args)
 
   -- Create a new buffer for the terminal
   state.buf = vim.api.nvim_create_buf(false, true)
-  print("🟥[31]: aider.lua:33: state.buf=" .. vim.inspect(state.buf))
 
   -- Split window at bottom and set its height
-  vim.cmd("botright split")
-  vim.api.nvim_win_set_height(0, 15)
+  vim.cmd("vsplit")
+  -- vim.api.nvim_win_set_height(0, 15)
 
   -- Set buffer in the window
   vim.api.nvim_win_set_buf(0, state.buf)
@@ -65,7 +64,6 @@ end
 ---@param text string Text to send to aider
 ---@return nil
 function M.send(text)
-  print("🟥[29]: aider.lua:70: text=" .. vim.inspect(text))
   if not state.initialized then
     vim.notify("Aider buffer not initialized. Call start() first.", vim.log.levels.ERROR)
     return
@@ -80,15 +78,12 @@ end
 ---@param args string|nil Optional arguments for the command
 ---@return nil
 function M.command(command, args)
-  print("🟥[25]: aider.lua:76: command=" .. command .. ", args:" .. vim.inspect(args))
-
   local cmd = "/" .. command
   if args then
     cmd = cmd .. " " .. args .. "\n"
   else
     cmd = cmd .. " " .. "\n"
   end
-  print("🟥[28]: aider.lua:83: cmd=" .. vim.inspect(cmd))
   M.send(cmd)
 end
 

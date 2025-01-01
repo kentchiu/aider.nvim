@@ -68,4 +68,11 @@ end, {
   desc = "Insert selection into Aider Chat",
 })
 
+vim.api.nvim_create_user_command("AiderFix", function(opts)
+  require("aider").fix()
+end, {
+  nargs = "*",
+  desc = "Fix Diagnostic",
+})
+
 require("aider").watch_file()
