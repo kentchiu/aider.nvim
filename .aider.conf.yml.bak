@@ -186,7 +186,7 @@
 #light-mode: false
 
 ## Enable/disable pretty, colorized output (default: True)
-#pretty: true
+pretty: false
 
 ## Enable/disable streaming responses (default: True)
 #stream: true

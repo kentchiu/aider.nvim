@@ -24,6 +24,13 @@ end, {
   desc = "Fix Diagnostic",
 })
 
+vim.keymap.set("n", "<leader>aa", "<cmd>Aider<cr>", { desc = "Toggle Adier" })
 vim.keymap.set("v", "<leader>as", "<cmd>AiderSend<cr>", { desc = "Send Selection to Aider" })
+vim.keymap.set("n", "<leader>af", "<cmd>AiderFix<cr>", { desc = "Fix Diagnostic" })
 
-require("aider").watch_file()
+-- require("aider").watch_file()
+--
+
+local util = require("aider.util")
+util.log("adider.nvim start")
+require("aider")

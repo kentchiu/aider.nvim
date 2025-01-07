@@ -1,5 +1,7 @@
 ---@class Aider
 local M = {}
+local util = require("aider.util")
+util.log("aider/init.lua")
 
 ---@class AiderState
 ---@field buf number|nil Buffer ID for the aider terminal
@@ -11,6 +13,20 @@ local state = {
   win_id = nil,
   initialized = false,
 }
+
+---Check if terminal buffer is visible in any window
+---@return boolean
+local function is_visible()
+  if not state.buf then
+    return false
+  end
+  for _, win in ipairs(vim.api.nvim_list_wins()) do
+    if vim.api.nvim_win_get_buf(win) == state.buf then
+      return true
+    end
+  end
+  return false
+end
 
 ---Get the aider buffer ID
 ---@return number|nil buffer Buffer ID of the aider terminal
@@ -43,15 +59,23 @@ function M.start(args)
     vim.cmd("vsplit")
     state.win_id = vim.api.nvim_get_current_win()
     vim.api.nvim_win_set_buf(state.win_id, state.buf)
-    vim.fn.termopen("aider")
-    vim.keymap.set("t", "<Esc>", [[<C-\><C-n>]], { buffer = state.buf, desc = "Exit terminal mode" })
-    vim.keymap.set("t", "q", "<CMD>Aider<CR>", { buffer = state.buf, desc = "Close aider chat window" })
+    local config = "--no-auto-commits --watch-files --no-auto-lint"
+    config = config .. " --read .cursorrules"
+    config = config .. " --multiline"
+    -- config = config .. " --no-pretty"
+    vim.fn.termopen("aider " .. config)
+    vim.api.nvim_buf_set_option(state.buf, "number", false)
+    vim.api.nvim_buf_set_option(state.buf, "relativenumber", false)
+    vim.cmd("startinsert")
+    vim.keymap.set("t", "<c-x>", [[<C-\><C-n>]], { buffer = state.buf, desc = "Exit terminal mode" })
+    -- vim.keymap.set("t", "q", "<CMD>Aider<CR>", { buffer = state.buf, desc = "Close aider chat window" })
     state.initialized = true
   else
     -- Buffer 已存在,只需要創建新窗口
     vim.cmd("vsplit")
     state.win_id = vim.api.nvim_get_current_win()
     vim.api.nvim_win_set_buf(state.win_id, state.buf)
+    vim.cmd("startinsert")
   end
 end
 
@@ -59,25 +83,31 @@ end
 ---@param text string Text to send to aider
 ---@return nil
 function M.send(text)
-  if not state.initialized then
+  if not is_visible() then
     require("aider").toggle()
   end
 
   -- mutil-line chat
-  if text:find("\n") then
-    text = "{DATA\n" .. text .. "\nDATA}"
-  end
+  -- if text:find("\n") then
+  --   text = "{DATA\n" .. text .. "\nDATA}"
+  -- end
 
   vim.api.nvim_chan_send(vim.bo[state.buf].channel, text)
 end
 
 function M.toggle()
-  if state.win_id and vim.api.nvim_win_is_valid(state.win_id) then
-    -- Window exists, close it
+  util.log("aider info: " .. vim.inspect(state))
+  if not state.buf or not vim.api.nvim_buf_is_valid(state.buf) then
+    -- First time: create new terminal
+    M.start()
+  elseif is_visible() then
+    -- Terminal is visible: hide it
     M.cleanup()
   else
-    -- Window doesn't exist, create it
-    M.start()
+    -- Terminal exists but not visible: show it
+    vim.cmd("vsplit")
+    state.win_id = vim.api.nvim_get_current_win()
+    vim.api.nvim_win_set_buf(state.win_id, state.buf)
   end
 end
 
