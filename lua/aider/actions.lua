@@ -16,48 +16,31 @@ function M.fix()
       terminal.send("Fix this diagnostic: " .. "\n" .. problem .. "\n")
     end
   else
-    vim.notify("No diagnostics for current line", vim.log.levels.WARN)
+    vim.notify("No diagnostics for current line")
   end
 end
 
 ---Send the current visual selection to aider
 ---@return nil
-function M.send(ask)
-  local start_pos = vim.fn.getpos("v")
-  local end_pos = vim.fn.getpos(".")
-
-  -- Ensure start_col <= end_col
-  local start_row = start_pos[2] - 1
-  local start_col = start_pos[3] - 1
-  local end_row = end_pos[2] - 1
-  local end_col = end_pos[3]
-
-  if start_row == end_row and start_col > end_col then
-    start_col, end_col = end_col, start_col
-  end
-
-  local lines = vim.api.nvim_buf_get_text(0, start_row, start_col, end_row, end_col, {})
-  local filetype = vim.bo.filetype
-
-  if #lines > 0 then
-    local terminal = require("aider.terminal")
-    local selection = table.concat(lines, "\n") .. "\n"
-    local content = M.template_ask(selection, filetype, ask)
-    util.log(content)
-    terminal.send(content)
-  else
-    vim.notify("No text selected", vim.log.levels.WARN)
+function M.send(content)
+  util.log(content, vim.log.levels.INFO)
+  if content then
+    require("aider.terminal").send(content)
   end
 end
 
-function M.template_ask(input, filetype, ask)
-  local tpl = "\n```" .. filetype .. "\n"
-  tpl = tpl .. input
-  tpl = tpl .. "```" .. "\n"
-  if ask then
-    tpl = tpl .. ask .. "\n"
+---Open a floating dialog for multi-line text input
+---@return nil
+function M.dialog()
+  local lines = util.get_visual_selection()
+  local filetype = vim.bo.filetype
+
+  local dialog = require("aider.dialog")
+  if lines then
+    dialog.toggle({ content = lines, filetype = filetype })
+  else
+    dialog.toggle({ filetype = filetype })
   end
-  return tpl
 end
 
 return M

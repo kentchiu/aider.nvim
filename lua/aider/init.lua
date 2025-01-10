@@ -13,9 +13,9 @@ function M.fix()
   require("aider.actions").fix()
 end
 
--- function M.watch_file()
---   require("aider.file_watcher").watch_file()
--- end
+function M.dialog()
+  require("aider.actions").dialog()
+end
 
 _G.dd = function(...)
   Snacks.debug.inspect(...)

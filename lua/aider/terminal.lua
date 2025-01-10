@@ -61,7 +61,7 @@ function M.start(args)
     vim.api.nvim_win_set_buf(state.win_id, state.buf)
     local config = "--no-auto-commits --watch-files --no-auto-lint"
     config = config .. " --read .cursorrules"
-    config = config .. " --multiline"
+    -- config = config .. " --multiline"
     -- config = config .. " --no-pretty"
     vim.fn.termopen("aider " .. config)
     vim.api.nvim_buf_set_option(state.buf, "number", false)
@@ -81,18 +81,23 @@ end
 
 ---Send text to the aider buffer
 ---@param text string Text to send to aider
+---@param enter boolean? Whether to send enter key after text (defaults to false)
 ---@return nil
-function M.send(text)
+function M.send(text, enter)
   if not is_visible() then
     require("aider").toggle()
   end
 
-  -- mutil-line chat
-  -- if text:find("\n") then
-  --   text = "{DATA\n" .. text .. "\nDATA}"
-  -- end
+  -- Use bracketed paste sequences
+  local paste_start = "\27[200~" -- paste start
+  local paste_end = "\27[201~" -- paste end and enter
+  local paste_data = paste_start .. text .. paste_end
+  local data = paste_data
+  if enter then
+    data = data .. "\n"
+  end
 
-  vim.api.nvim_chan_send(vim.bo[state.buf].channel, text)
+  vim.fn.chansend(vim.bo[state.buf].channel, data)
 end
 
 function M.toggle()
