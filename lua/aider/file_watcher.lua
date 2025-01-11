@@ -1,6 +1,7 @@
 ---@class AiderFileWatcher
 local M = {}
 local util = require("aider.util")
+local diff_handler = require("aider.diff_handler")
 
 local handles = {}
 
@@ -29,16 +30,9 @@ local function watch_file()
     end
 
     vim.schedule(function()
-      if vim.bo.modified then
-        util.log("Buffer has unsaved changes - not reloading")
-      else
-        local bufnr = vim.fn.bufnr(filename)
-        if bufnr > 0 then
-          vim.api.nvim_buf_call(bufnr, function()
-            util.log("Buffer has changes reload file: " .. filename)
-            vim.cmd("e!")
-          end)
-        end
+      local bufnr = vim.fn.bufnr(filename)
+      if bufnr > 0 then
+        diff_handler.handle_file_change(filename, bufnr)
       end
     end)
   end)
