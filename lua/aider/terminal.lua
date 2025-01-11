@@ -67,8 +67,8 @@ function M.start(args)
     vim.api.nvim_buf_set_option(state.buf, "number", false)
     vim.api.nvim_buf_set_option(state.buf, "relativenumber", false)
     vim.cmd("startinsert")
-    vim.keymap.set("t", "<c-x>", [[<C-\><C-n>]], { buffer = state.buf, desc = "Exit terminal mode" })
-    -- vim.keymap.set("t", "q", "<CMD>Aider<CR>", { buffer = state.buf, desc = "Close aider chat window" })
+    vim.keymap.set("t", "<ESC>", [[<C-\><C-n>]], { buffer = state.buf, desc = "Exit terminal mode" })
+    vim.keymap.set("t", "q", "<CMD>Aider<CR>", { buffer = state.buf, desc = "Close aider chat window" })
     state.initialized = true
   else
     -- Buffer 已存在,只需要創建新窗口

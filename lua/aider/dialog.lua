@@ -45,7 +45,7 @@ function M.open(opts)
   -- Create buffer if not exists
   if not state.buf or not vim.api.nvim_buf_is_valid(state.buf) then
     state.buf = vim.api.nvim_create_buf(false, true)
-    vim.api.nvim_buf_set_option(state.buf, "buftype", "nofile")
+    vim.api.nvim_buf_set_option(state.buf, "buftype", "prompt")
     vim.api.nvim_buf_set_option(state.buf, "bufhidden", "hide")
     vim.api.nvim_buf_set_option(state.buf, "filetype", "markdown")
   end
@@ -106,7 +106,8 @@ function M.open(opts)
     state.content = ""
   end, keymap_opts)
 
-  -- Enter insert mode
+  -- Enter insert mode and scroll to end
+  vim.cmd("normal! G$")
   vim.cmd("startinsert")
 end
 
