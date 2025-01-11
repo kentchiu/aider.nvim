@@ -45,7 +45,7 @@ function M.open(opts)
   -- Create buffer if not exists
   if not state.buf or not vim.api.nvim_buf_is_valid(state.buf) then
     state.buf = vim.api.nvim_create_buf(false, true)
-    vim.api.nvim_buf_set_option(state.buf, "buftype", "prompt")
+    vim.api.nvim_buf_set_option(state.buf, "buftype", "nofile")
     vim.api.nvim_buf_set_option(state.buf, "bufhidden", "hide")
     vim.api.nvim_buf_set_option(state.buf, "filetype", "markdown")
   end
@@ -58,8 +58,8 @@ function M.open(opts)
     vim.api.nvim_win_close(state.win, true)
   end
 
-  local width = math.floor(vim.o.columns * 0.8)
-  local height = math.floor(vim.o.lines * 0.8)
+  local width = math.floor(vim.o.columns * 0.5)
+  local height = math.floor(vim.o.lines * 0.5)
 
   local row = math.floor((vim.o.lines - height) / 2)
   local col = math.floor((vim.o.columns - width) / 2)
@@ -72,7 +72,6 @@ function M.open(opts)
     row = row,
     col = col,
     style = "minimal",
-    border = "rounded",
     title = " Input Text ",
     title_pos = "center",
   }
