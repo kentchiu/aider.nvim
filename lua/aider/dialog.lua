@@ -72,6 +72,7 @@ function M.open(opts)
     row = row,
     col = col,
     style = "minimal",
+    border = "rounded",
     title = " Input Text ",
     title_pos = "center",
   }

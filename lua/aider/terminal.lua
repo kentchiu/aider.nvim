@@ -12,6 +12,7 @@ local state = {
   buf = nil,
   win_id = nil,
   initialized = false,
+  job_id = nil, -- 儲存 terminal job id
 }
 
 ---Check if terminal buffer is visible in any window
@@ -59,11 +60,34 @@ function M.start(args)
     vim.cmd("vsplit")
     state.win_id = vim.api.nvim_get_current_win()
     vim.api.nvim_win_set_buf(state.win_id, state.buf)
+
     local config = "--no-auto-commits --watch-files --no-auto-lint"
     config = config .. " --read .cursorrules"
-    -- config = config .. " --multiline"
-    -- config = config .. " --no-pretty"
-    vim.fn.termopen("aider " .. config)
+
+    -- 設置 terminal job 的回調函數
+    local job_id = vim.fn.termopen("aider " .. config, {
+      on_stderr = function(_, data)
+        -- handlers.handle_stderr(state, data)
+      end,
+      on_stdout = function(_, data)
+        -- handlers.handle_stdout(state, data)
+      end,
+      on_exit = function(_, exit_code)
+        util.log("[Aider exit] with code: " .. exit_code)
+        state.job_id = nil
+      end,
+    })
+
+    state.job_id = job_id
+
+    -- 監聽 buffer 變化來捕獲輸入
+    vim.api.nvim_buf_attach(state.buf, false, {
+      on_lines = function(_, buf, _, first_line, last_line)
+        -- handlers.handle_stdin(state, buf, first_line, last_line)
+        return true
+      end,
+    })
+
     vim.api.nvim_buf_set_option(state.buf, "number", false)
     vim.api.nvim_buf_set_option(state.buf, "relativenumber", false)
     vim.cmd("startinsert")

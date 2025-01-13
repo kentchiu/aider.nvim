@@ -1,10 +1,13 @@
 # aider.nvim
 
 Aider neovim plugin
-2025-01-11 15:29:51 9
-2025-01-11 15:32:20 9
-2025-01-11 16:04:51 hello world
-2025-01-11 16:13:42 hihihihi
-2025-01-11 16:16:02 xxxxxx
-2025-01-11 16:45:41 ooooo
-2025-01-11 17:11:14 aaaaa
+
+## TODO
+
+- [x] watching file change
+- [x] dialog for prompt
+- [x] fix diagnostic
+- [ ] show diagnostic in dialog before fix
+- [ ] aider command in dialog
+- [ ] forward aider confirmation to neovim ui
+- [ ] show diff
