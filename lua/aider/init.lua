@@ -34,5 +34,4 @@ vim.print = _G.dd
 local util = require("aider.util")
 util.log("aider/init.lua")
 require("aider.file_watcher")
-
 return M

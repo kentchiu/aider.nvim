@@ -5,15 +5,15 @@ local util = require("aider.util")
 ---Fix diagnostics at the current cursor position
 ---@return nil
 function M.fix()
-  local line = vim.api.nvim_win_get_cursor(0)[1] - 1 -- 行号从 0 开始
+  local line = vim.api.nvim_win_get_cursor(0)[1] - 1
   local diagnostics = vim.diagnostic.get(0, { lnum = line })
   if #diagnostics > 0 then
     local filename = vim.fn.expand("%")
     local terminal = require("aider.terminal")
-    terminal.send("/add " .. filename .. "\n")
+    terminal.send("/add " .. filename, true)
     for _, diagnostic in ipairs(diagnostics) do
       local problem = vim.inspect(diagnostic):gsub("\n%s*", " ")
-      terminal.send("Fix this diagnostic: " .. "\n" .. problem .. "\n")
+      terminal.send("Fix this diagnostic: " .. "\n" .. problem .. "\n", true)
     end
   else
     vim.notify("No diagnostics for current line")
