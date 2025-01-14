@@ -1,5 +1,6 @@
 ---@class Aider
 local M = {}
+local terminal_events = require("aider.terminal_events")
 local util = require("aider.util")
 util.log("aider/init.lua")
 
@@ -65,26 +66,14 @@ function M.start(args)
     config = config .. " --read .cursorrules"
 
     -- 設置 terminal job 的回調函數
-    local job_id = vim.fn.termopen("aider " .. config, {
-      on_stderr = function(_, data)
-        -- handlers.handle_stderr(state, data)
-      end,
-      on_stdout = function(_, data)
-        -- handlers.handle_stdout(state, data)
-      end,
-      on_exit = function(_, exit_code)
-        util.log("[Aider exit] with code: " .. exit_code)
-        state.job_id = nil
-      end,
-    })
+    local job_id = vim.fn.termopen("aider " .. config)
 
     state.job_id = job_id
 
     -- 監聽 buffer 變化來捕獲輸入
     vim.api.nvim_buf_attach(state.buf, false, {
-      on_lines = function(_, buf, _, first_line, last_line)
-        -- handlers.handle_stdin(state, buf, first_line, last_line)
-        return true
+      on_lines = function(_, buf, changedtick, first_line, last_line, last_line_in_range, byte_count)
+        terminal_events.handle_lines(buf, changedtick, first_line, last_line, last_line_in_range, byte_count)
       end,
     })
 

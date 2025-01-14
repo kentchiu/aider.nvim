@@ -20,6 +20,10 @@ local LEVELS = {
 function M.log(message, level)
   level = level or vim.log.levels.INFO
 
+  if level == vim.log.levels.OFF then
+    return
+  end
+
   -- Only log if level is >= default_level
   if level < M.default_level then
     return

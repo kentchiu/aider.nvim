@@ -15,6 +15,14 @@ local function watch_file()
   if not fullpath or fullpath == "" then
     return
   end
+
+  -- Skip non-normal buffers
+  local bufnr = vim.fn.bufnr(fullpath)
+  if bufnr == -1 or vim.bo[bufnr].buftype ~= "" then
+    util.log("skip non-normal buffer: " .. fullpath, vim.log.levels.DEBUG)
+    return
+  end
+
   util.log("start watching file: " .. relate_path)
 
   if handles[fullpath] then
