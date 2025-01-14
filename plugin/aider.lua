@@ -141,6 +141,6 @@ vim.keymap.set("v", "<leader>ad", "<cmd>AiderDialog<cr>", { desc = "Fix Dialog" 
 --
 
 local util = require("aider.util")
-util.default_level = vim.log.levels.TRACE
+util.default_level = vim.log.levels.DEBUG
 util.log("adider.nvim start")
 require("aider")
