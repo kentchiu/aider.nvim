@@ -26,6 +26,14 @@ function M.clear_lines_history()
   state.history = {}
 end
 
+function M.reset_state()
+  state.history = {}
+  state.current_chat_mode = nil
+  state.mode_change_callbacks = {}
+  state.editable_files = {}
+  state.readonly_files = {}
+end
+
 function M.on_mode_change(callback)
   table.insert(state.mode_change_callbacks, callback)
 end
