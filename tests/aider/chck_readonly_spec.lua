@@ -1,0 +1,46 @@
+local terminal_events = require("aider.terminal_events")
+
+describe("terminal_events", function()
+  before_each(function()
+    -- Reset the state before each test
+    terminal_events.clear_lines_history()
+  end)
+
+  describe("check_readonly", function()
+    it("should parse single readonly file path", function()
+      local result = terminal_events.check_readonly("Readonly: path/to/file.txt")
+      assert.is_true(result)
+      assert.same({"path/to/file.txt"}, terminal_events.get_readonly_files())
+    end)
+
+    it("should parse multiple readonly file paths", function()
+      local result = terminal_events.check_readonly("Readonly: file1.txt file2.txt file3.txt")
+      assert.is_true(result)
+      assert.same({"file1.txt", "file2.txt", "file3.txt"}, terminal_events.get_readonly_files())
+    end)
+
+    it("should handle paths with spaces", function()
+      local result = terminal_events.check_readonly("Readonly: path/to/my file.txt another file.txt")
+      assert.is_true(result)
+      assert.same({"path/to/my", "file.txt", "another", "file.txt"}, terminal_events.get_readonly_files())
+    end)
+
+    it("should handle empty readonly line", function()
+      local result = terminal_events.check_readonly("Readonly:")
+      assert.is_true(result)
+      assert.same({}, terminal_events.get_readonly_files())
+    end)
+
+    it("should return false for non-readonly lines", function()
+      local result = terminal_events.check_readonly("Some other text")
+      assert.is_false(result)
+      assert.same({}, terminal_events.get_readonly_files())
+    end)
+
+    it("should handle comma-separated paths", function()
+      local result = terminal_events.check_readonly("Readonly: file1.txt,file2.txt,file3.txt")
+      assert.is_true(result)
+      assert.same({"file1.txt", "file2.txt", "file3.txt"}, terminal_events.get_readonly_files())
+    end)
+  end)
+end)
