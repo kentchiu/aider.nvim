@@ -43,4 +43,18 @@ function M.dialog()
   end
 end
 
+--- Send current file to aider
+function M.add_file()
+  local filename = vim.fn.expand("%")
+  local terminal = require("aider.terminal")
+  terminal.send("/add " .. filename, true)
+end
+
+--- Drop current file from aider
+function M.drop_file()
+  local filename = vim.fn.expand("%")
+  local terminal = require("aider.terminal")
+  terminal.send("/drop " .. filename, true)
+end
+
 return M

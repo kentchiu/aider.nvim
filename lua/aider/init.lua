@@ -17,6 +17,14 @@ function M.dialog()
   require("aider.actions").dialog()
 end
 
+function M.add_file()
+  require("aider.actions").add_file()
+end
+
+function M.drop_file()
+  require("aider.actions").drop_file()
+end
+
 _G.dd = function(...)
   Snacks.debug.inspect(...)
 end

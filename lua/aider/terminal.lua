@@ -64,6 +64,7 @@ function M.start(args)
 
     local config = "--no-auto-commits --watch-files --no-auto-lint"
     config = config .. " --read .cursorrules"
+    config = config .. "--model deepseek/deepseek-chat"
 
     -- 設置 terminal job 的回調函數
     local job_id = vim.fn.termopen("aider " .. config)

@@ -5,18 +5,6 @@ end, {
   desc = "Start Aider",
 })
 
--- vim.api.nvim_create_user_command("AiderSend", function(opts)
---   local ask = vim.fn.input("Ask Aider: ")
---   if ask ~= "" then
---     require("aider").send(ask)
---   else
---     require("aider").send()
---   end
--- end, {
---   nargs = "*",
---   desc = "Send text to Aider",
--- })
-
 vim.api.nvim_create_user_command("AiderFix", function(opts)
   require("aider").fix()
 end, {
@@ -29,6 +17,20 @@ vim.api.nvim_create_user_command("AiderDialog", function(opts)
 end, {
   nargs = "*",
   desc = "Open Dialog",
+})
+
+vim.api.nvim_create_user_command("AiderAddFile", function(opts)
+  require("aider").add_file()
+end, {
+  nargs = "*",
+  desc = "Add Current File to Aider",
+})
+
+vim.api.nvim_create_user_command("AiderDropFile", function(opts)
+  require("aider").drop_file()
+end, {
+  nargs = "*",
+  desc = "Drop Current File from Aider",
 })
 
 vim.api.nvim_create_user_command("AiderTest", function(opts)
@@ -132,15 +134,16 @@ end, {
 
 -- vim.keymap.set("v", "<leader>aa", "<cmd>AiderTest<cr>", { desc = "Adier Test" })
 vim.keymap.set("n", "<leader>aa", "<cmd>Aider<cr>", { desc = "Toggle Adier" })
--- vim.keymap.set("v", "<leader>as", "<cmd>AiderSend<cr>", { desc = "Send Selection to Aider" })
 vim.keymap.set("n", "<leader>af", "<cmd>AiderFix<cr>", { desc = "Fix Diagnostic" })
 vim.keymap.set("n", "<leader>ad", "<cmd>AiderDialog<cr>", { desc = "Fix Dialog" })
 vim.keymap.set("v", "<leader>ad", "<cmd>AiderDialog<cr>", { desc = "Fix Dialog" })
+vim.keymap.set("n", "<leader>a+", "<cmd>AiderAddFile<cr>", { desc = "Add Current File" })
+vim.keymap.set("n", "<leader>a-", "<cmd>AiderDropFile<cr>", { desc = "Drop Current File" })
 
 -- require("aider").watch_file()
 --
 
 local util = require("aider.util")
-util.default_level = vim.log.levels.OFF
+util.default_level = vim.log.levels.DEBUG
 util.log("adider.nvim start")
 require("aider")
