@@ -77,7 +77,8 @@ local function watch_file()
       local bufnr = vim.fn.bufnr(fullpath)
       if bufnr > 0 then
         -- 強制重新讀取buffer
-        vim.cmd("checktime " .. bufnr)
+        -- vim.cmd("checktime " .. bufnr)
+        vim.cmd(":e!")
         vim.notify(relate_path .. " changed from external", vim.log.levels.INFO)
       else
         util.log("Buffer not found for: " .. fullpath)

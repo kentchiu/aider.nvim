@@ -9,16 +9,6 @@ local state = {
   filetype = "markdown",
 }
 
-local function template(input, filetype)
-  if #input == 0 then
-    return ""
-  end
-  local tpl = "```" .. filetype .. "\n"
-  tpl = tpl .. input
-  tpl = tpl .. "\n```" .. "\n"
-  return tpl
-end
-
 function M.toggle(opts)
   opts = opts or {}
   state.content = opts.content or state.content or ""
@@ -45,12 +35,12 @@ function M.open(opts)
   -- Create buffer if not exists
   if not state.buf or not vim.api.nvim_buf_is_valid(state.buf) then
     state.buf = vim.api.nvim_create_buf(false, true)
-    vim.api.nvim_buf_set_option(state.buf, "buftype", "nofile")
-    vim.api.nvim_buf_set_option(state.buf, "bufhidden", "hide")
-    vim.api.nvim_buf_set_option(state.buf, "filetype", "markdown")
+    vim.bo[state.buf].buftype = "nofile"
+    vim.bo[state.buf].bufhidden = "hide"
+    vim.bo[state.buf].filetype = "markdown"
   end
 
-  local content = template(state.content, state.filetype)
+  local content = util.template_code(state.content, state.filetype)
   vim.api.nvim_buf_set_lines(state.buf, 0, -1, false, vim.split(content or "", "\n"))
 
   -- Close existing window if open
@@ -81,9 +71,9 @@ function M.open(opts)
   state.win = vim.api.nvim_open_win(state.buf, true, win_opts)
 
   -- 設置行號
-  vim.wo[state.win].number = true
+  vim.wo[state.win].number = false
   vim.wo[state.win].relativenumber = false
-
+  -- vim.wo[state.win].conceallevel = 0
   -- Set up keymaps for the dialog
   local keymap_opts = { buffer = state.buf, silent = true }
 

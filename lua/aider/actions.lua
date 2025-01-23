@@ -5,19 +5,31 @@ local util = require("aider.util")
 ---Fix diagnostics at the current cursor position
 ---@return nil
 function M.fix()
+  local terminal = require("aider.terminal")
   local line = vim.api.nvim_win_get_cursor(0)[1] - 1
   local diagnostics = vim.diagnostic.get(0, { lnum = line })
+
   if #diagnostics > 0 then
     local filename = vim.fn.expand("%")
-    local terminal = require("aider.terminal")
+    local current_line = vim.api.nvim_buf_get_lines(0, line, line + 1, false)[1]
     terminal.send("/add " .. filename, true)
+
+    -- local tpl = util.template_code(current_line, vim.bo.filetype)
+    -- terminal.send(tpl .. "\n", false)
+
     for _, diagnostic in ipairs(diagnostics) do
       local problem = vim.inspect(diagnostic):gsub("\n%s*", " ")
-      terminal.send("Fix this diagnostic: " .. "\n" .. problem .. "\n", true)
+      local content = util.template_code(current_line, vim.bo.filetype)
+      content = content .. " Fix this diagnostic: \n" .. util.template_code(problem, "lua")
+      require("aider.dialog").toggle({
+        content = content,
+        filetype = "markdown",
+      })
     end
   else
     vim.notify("No diagnostics for current line")
   end
+  local foo = "bar"
 end
 
 ---Send the current visual selection to aider

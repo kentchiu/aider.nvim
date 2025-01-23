@@ -84,4 +84,18 @@ function M.get_visual_selection()
   return selected_text
 end
 
+--- Wrap content in a code block template
+---@param input string The content to wrap
+---@param filetype string The language for the code block
+---@return string
+function M.template_code(input, filetype)
+  if #input == 0 then
+    return ""
+  end
+  local tpl = "```" .. filetype .. "\n"
+  tpl = tpl .. input
+  tpl = tpl .. "\n```\n"
+  return tpl
+end
+
 return M

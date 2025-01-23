@@ -4,92 +4,79 @@ local terminal_events = require("aider.terminal_events")
 local util = require("aider.util")
 util.log("aider/init.lua")
 
----@class AiderState
----@field buf number|nil Buffer ID for the aider terminal
----@field initialized boolean Whether aider has been initialized
-
--- Store buffer ID and state
 local state = {
-  buf = nil,
+  bufnr = nil,
   win_id = nil,
   initialized = false,
-  job_id = nil, -- 儲存 terminal job id
+  job_id = nil,
 }
 
 ---Check if terminal buffer is visible in any window
 ---@return boolean
 local function is_visible()
-  if not state.buf then
+  if not state.bufnr then
     return false
   end
   for _, win in ipairs(vim.api.nvim_list_wins()) do
-    if vim.api.nvim_win_get_buf(win) == state.buf then
+    if vim.api.nvim_win_get_buf(win) == state.bufnr then
       return true
     end
   end
   return false
 end
 
----Get the aider buffer ID
----@return number|nil buffer Buffer ID of the aider terminal
-function M.get_buffer()
-  return state.buf
-end
-
----Check if aider is initialized
----@return boolean initialized Whether aider has been initialized
-function M.is_initialized()
-  return state.initialized
-end
-
----Clean up aider state and close buffer
----@return nil
-function M.cleanup()
+function M.hide()
   if state.win_id and vim.api.nvim_win_is_valid(state.win_id) then
     vim.api.nvim_win_close(state.win_id, true)
     state.win_id = nil
   end
 end
 
----Start the aider terminal
----@param args table|nil Optional arguments for aider
----@return nil
 function M.start(args)
   -- 如果 buffer 不存在才創建新的
-  if not state.buf or not vim.api.nvim_buf_is_valid(state.buf) then
-    state.buf = vim.api.nvim_create_buf(false, true)
-    vim.cmd("vsplit")
-    state.win_id = vim.api.nvim_get_current_win()
-    vim.api.nvim_win_set_buf(state.win_id, state.buf)
-
+  if not state.bufnr or not vim.api.nvim_buf_is_valid(state.bufnr) then
     local config = "--no-auto-commits --watch-files --no-auto-lint"
     config = config .. " --read .cursorrules"
-    config = config .. "--model deepseek/deepseek-chat"
+    -- config = config .. " --model deepseek/deepseek-chat"
+    config = config .. " --model r1"
+    config = config .. " --no-show-release-notes"
+    config = config .. " --no-check-update "
+    -- config = config .. " --no-pretty "
+    -- config = config .. " --no-stream "
+    config = config .. " --chat-language zh-TW "
 
-    -- 設置 terminal job 的回調函數
-    local job_id = vim.fn.termopen("aider " .. config)
+    local win_config = {
+      split = "right",
+      win = 0,
+    }
 
-    state.job_id = job_id
+    state.bufnr = vim.api.nvim_create_buf(false, true)
+    state.win_id = vim.api.nvim_open_win(state.bufnr, true, win_config)
+    vim.api.nvim_set_current_win(state.win_id)
+
+    -- config
+    vim.wo[state.win_id].number = false
+    vim.wo[state.win_id].relativenumber = false
+    vim.cmd("startinsert")
+    vim.keymap.set("t", "<ESC>", [[<C-\><C-n>]], { buffer = state.bufnr, desc = "Exit terminal mode" })
+    vim.keymap.set("n", "q", "<CMD>Aider<CR>", { buffer = state.bufnr, desc = "Close aider chat window" })
+
+    state.job_id = vim.fn.termopen("aider " .. config)
 
     -- 監聽 buffer 變化來捕獲輸入
-    vim.api.nvim_buf_attach(state.buf, false, {
+    vim.api.nvim_buf_attach(state.bufnr, false, {
       on_lines = function(_, buf, changedtick, first_line, last_line, last_line_in_range, byte_count)
         terminal_events.handle_lines(buf, changedtick, first_line, last_line, last_line_in_range, byte_count)
       end,
     })
 
-    vim.api.nvim_buf_set_option(state.buf, "number", false)
-    vim.api.nvim_buf_set_option(state.buf, "relativenumber", false)
-    vim.cmd("startinsert")
-    vim.keymap.set("t", "<ESC>", [[<C-\><C-n>]], { buffer = state.buf, desc = "Exit terminal mode" })
-    vim.keymap.set("t", "q", "<CMD>Aider<CR>", { buffer = state.buf, desc = "Close aider chat window" })
-    state.initialized = true
-  else
-    -- Buffer 已存在,只需要創建新窗口
-    vim.cmd("vsplit")
-    state.win_id = vim.api.nvim_get_current_win()
-    vim.api.nvim_win_set_buf(state.win_id, state.buf)
-    vim.cmd("startinsert")
+    vim.api.nvim_create_autocmd({ "WinEnter", "FocusGained" }, {
+      buffer = state.bufnr,
+      callback = function()
+        vim.cmd("startinsert")
+      end,
+      desc = "Enter to insert mode when terminal gains focus",
+    })
   end
 end
 
@@ -98,10 +85,6 @@ end
 ---@param enter boolean? Whether to send enter key after text (defaults to false)
 ---@return nil
 function M.send(text, enter)
-  if not is_visible() then
-    require("aider").toggle()
-  end
-
   -- Use bracketed paste sequences
   local paste_start = "\27[200~" -- paste start
   local paste_end = "\27[201~" -- paste end and enter
@@ -111,22 +94,23 @@ function M.send(text, enter)
     data = data .. "\n"
   end
 
-  vim.fn.chansend(vim.bo[state.buf].channel, data)
+  vim.fn.chansend(vim.bo[state.bufnr].channel, data)
 end
 
 function M.toggle()
   util.log("aider info: " .. vim.inspect(state))
-  if not state.buf or not vim.api.nvim_buf_is_valid(state.buf) then
-    -- First time: create new terminal
+  if not state.bufnr or not vim.api.nvim_buf_is_valid(state.bufnr) then
     M.start()
   elseif is_visible() then
-    -- Terminal is visible: hide it
-    M.cleanup()
+    M.hide()
   else
-    -- Terminal exists but not visible: show it
-    vim.cmd("vsplit")
-    state.win_id = vim.api.nvim_get_current_win()
-    vim.api.nvim_win_set_buf(state.win_id, state.buf)
+    local win_config = {
+      split = "right",
+      win = 0,
+    }
+    state.win_id = vim.api.nvim_open_win(state.bufnr, true, win_config)
+    vim.api.nvim_set_current_win(state.win_id)
+    vim.cmd("startinsert")
   end
 end
 

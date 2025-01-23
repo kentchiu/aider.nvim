@@ -121,10 +121,17 @@ function M.handle_lines(buf, changedtick, first_line, last_line, last_line_in_ra
     byte_count = byte_count,
   }
 
+  -- local args_str = string.format(
+  --   "buf=%d changedtick=%d first_line=%d last_line=%d last_line_in_range=%d byte_count=%d",
+  --   buf,
+  --   changedtick,
+  --   first_line,
+  --   last_line,
+  --   last_line_in_range,
+  --   byte_count
+  -- )
   local args_str = string.format(
-    "buf=%d changedtick=%d first_line=%d last_line=%d last_line_in_range=%d byte_count=%d",
-    buf,
-    changedtick,
+    "first_line=%d last_line=%d last_line_in_range=%d byte_count=%d",
     first_line,
     last_line,
     last_line_in_range,

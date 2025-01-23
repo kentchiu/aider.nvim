@@ -4,7 +4,10 @@ Aider neovim plugin
 
 ## TODO
 
-- [ ] scroll to buttom when terminal on focus
+- [ ] defer reload modify file
+- [ ] scroll left when chunk changes came in
+- [ ] only enable log when .aider.xxxx exists
+- [ ] scroll to bottom when terminal on focus
 - [ ] drop file from file list
 - [ ] show diagnostic in dialog before fix
 - [ ] aider command in dialog
