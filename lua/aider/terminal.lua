@@ -61,9 +61,9 @@ function M.start(args)
     vim.keymap.set("t", "<ESC>", [[<C-\><C-n>]], { buffer = state.bufnr, desc = "Exit terminal mode" })
     vim.keymap.set("n", "q", "<CMD>Aider<CR>", { buffer = state.bufnr, desc = "Close aider chat window" })
 
-    state.job_id = vim.fn.termopen("aider " .. config)
+    state.job_id = vim.fn.jobstart("aider " .. config, { term = true })
 
-    -- 監聽 buffer 變化來捕獲輸入
+    -- -- 監聽 buffer 變化來捕獲輸入
     vim.api.nvim_buf_attach(state.bufnr, false, {
       on_lines = function(_, buf, changedtick, first_line, last_line, last_line_in_range, byte_count)
         terminal_events.handle_lines(buf, changedtick, first_line, last_line, last_line_in_range, byte_count)

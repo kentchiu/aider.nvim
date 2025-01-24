@@ -66,7 +66,7 @@ vim.keymap.set("n", "<leader>a-", "<cmd>AiderDropFile<cr>", { desc = "Drop Curre
 local util = require("aider.util")
 -- only enable logger when aider is found in path
 if vim.fn.glob(".aider.*") ~= "" then
-  util.default_level = vim.log.levels.WARN
+  util.default_level = vim.log.levels.DEBUG
 else
   util.default_level = vim.log.levels.OFF
 end
