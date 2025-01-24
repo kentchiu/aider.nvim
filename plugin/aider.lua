@@ -38,6 +38,20 @@ vim.api.nvim_create_user_command("AiderTest", function(opts) end, {
   desc = "Test Terminal Buffer",
 })
 
+vim.api.nvim_create_user_command("AiderYes", function(opts)
+  require("aider").yes()
+end, {
+  nargs = "*",
+  desc = "Test Terminal Buffer",
+})
+
+vim.api.nvim_create_user_command("AiderNo", function(opts)
+  require("aider").no()
+end, {
+  nargs = "*",
+  desc = "Test Terminal Buffer",
+})
+
 -- vim.keymap.set("v", "<leader>aa", "<cmd>AiderTest<cr>", { desc = "Adier Test" })
 vim.keymap.set("n", "<leader>aa", "<cmd>Aider<cr>", { desc = "Toggle Adier" })
 vim.keymap.set("n", "<leader>af", "<cmd>AiderFix<cr>", { desc = "Fix Diagnostic" })

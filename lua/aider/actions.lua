@@ -14,9 +14,6 @@ function M.fix()
     local current_line = vim.api.nvim_buf_get_lines(0, line, line + 1, false)[1]
     terminal.send("/add " .. filename, true)
 
-    -- local tpl = util.template_code(current_line, vim.bo.filetype)
-    -- terminal.send(tpl .. "\n", false)
-
     for _, diagnostic in ipairs(diagnostics) do
       local problem = vim.inspect(diagnostic):gsub("\n%s*", " ")
       local content = util.template_code(current_line, vim.bo.filetype)

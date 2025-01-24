@@ -25,6 +25,14 @@ function M.drop_file()
   require("aider.actions").drop_file()
 end
 
+function M.yes()
+  require("aider.terminal").send("Yes", true)
+end
+
+function M.no()
+  require("aider.terminal").send("No", true)
+end
+
 _G.dd = function(...)
   Snacks.debug.inspect(...)
 end
