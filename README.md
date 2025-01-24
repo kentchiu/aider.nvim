@@ -4,6 +4,8 @@ Aider neovim plugin
 
 ## TODO
 
+- [ ] :AiderNo
+- [ ] :AiderYes
 - [ ] defer reload modify file
 - [ ] scroll left when chunk changes came in
 - [ ] only enable log when .aider.xxxx exists
