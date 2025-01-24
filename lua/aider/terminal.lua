@@ -6,7 +6,7 @@ util.log("aider/init.lua")
 
 local state = {
   bufnr = nil,
-  win_id = nil,
+  winid = nil,
   initialized = false,
   job_id = nil,
 }
@@ -26,9 +26,9 @@ local function is_visible()
 end
 
 function M.hide()
-  if state.win_id and vim.api.nvim_win_is_valid(state.win_id) then
-    vim.api.nvim_win_close(state.win_id, true)
-    state.win_id = nil
+  if state.winid and vim.api.nvim_win_is_valid(state.winid) then
+    vim.api.nvim_win_close(state.winid, true)
+    state.winid = nil
   end
 end
 
@@ -51,12 +51,12 @@ function M.start(args)
     }
 
     state.bufnr = vim.api.nvim_create_buf(false, true)
-    state.win_id = vim.api.nvim_open_win(state.bufnr, true, win_config)
-    vim.api.nvim_set_current_win(state.win_id)
+    state.winid = vim.api.nvim_open_win(state.bufnr, true, win_config)
+    vim.api.nvim_set_current_win(state.winid)
 
     -- config
-    vim.wo[state.win_id].number = false
-    vim.wo[state.win_id].relativenumber = false
+    vim.wo[state.winid].number = false
+    vim.wo[state.winid].relativenumber = false
     vim.cmd("startinsert")
     vim.keymap.set("t", "<ESC>", [[<C-\><C-n>]], { buffer = state.bufnr, desc = "Exit terminal mode" })
     vim.keymap.set("n", "q", "<CMD>Aider<CR>", { buffer = state.bufnr, desc = "Close aider chat window" })
@@ -108,8 +108,8 @@ function M.toggle()
       split = "right",
       win = 0,
     }
-    state.win_id = vim.api.nvim_open_win(state.bufnr, true, win_config)
-    vim.api.nvim_set_current_win(state.win_id)
+    state.winid = vim.api.nvim_open_win(state.bufnr, true, win_config)
+    vim.api.nvim_set_current_win(state.winid)
     vim.cmd("startinsert")
   end
 end

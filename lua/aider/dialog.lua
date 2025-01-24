@@ -3,8 +3,8 @@ local M = {}
 local util = require("aider.util")
 
 local state = {
-  buf = nil,
-  win = nil,
+  bufrn = nil,
+  winid = nil,
   content = nil, -- Initialize as nil instead of empty string
   filetype = "markdown",
 }
@@ -15,9 +15,9 @@ function M.toggle(opts)
   state.filetype = opts.filetype or state.filetype
 
   -- 如果窗口存在且有效，則關閉它
-  if state.win and vim.api.nvim_win_is_valid(state.win) then
-    vim.api.nvim_win_close(state.win, true)
-    state.win = nil
+  if state.winid and vim.api.nvim_win_is_valid(state.winid) then
+    vim.api.nvim_win_close(state.winid, true)
+    state.winid = nil
     return
   end
 
@@ -33,19 +33,19 @@ function M.open(opts)
   end
 
   -- Create buffer if not exists
-  if not state.buf or not vim.api.nvim_buf_is_valid(state.buf) then
-    state.buf = vim.api.nvim_create_buf(false, true)
-    vim.bo[state.buf].buftype = "nofile"
-    vim.bo[state.buf].bufhidden = "hide"
-    vim.bo[state.buf].filetype = "markdown"
+  if not state.bufrn or not vim.api.nvim_buf_is_valid(state.bufrn) then
+    state.bufrn = vim.api.nvim_create_buf(false, true)
+    vim.bo[state.bufrn].buftype = "nofile"
+    vim.bo[state.bufrn].bufhidden = "hide"
+    vim.bo[state.bufrn].filetype = "markdown"
   end
 
   local content = util.template_code(state.content, state.filetype)
-  vim.api.nvim_buf_set_lines(state.buf, 0, -1, false, vim.split(content or "", "\n"))
+  vim.api.nvim_buf_set_lines(state.bufrn, 0, -1, false, vim.split(content or "", "\n"))
 
   -- Close existing window if open
-  if state.win and vim.api.nvim_win_is_valid(state.win) then
-    vim.api.nvim_win_close(state.win, true)
+  if state.winid and vim.api.nvim_win_is_valid(state.winid) then
+    vim.api.nvim_win_close(state.winid, true)
   end
 
   local width = math.floor(vim.o.columns * 0.5)
@@ -68,31 +68,31 @@ function M.open(opts)
   }
 
   -- Create the floating window
-  state.win = vim.api.nvim_open_win(state.buf, true, win_opts)
+  state.winid = vim.api.nvim_open_win(state.bufrn, true, win_opts)
 
   -- 設置行號
-  vim.wo[state.win].number = false
-  vim.wo[state.win].relativenumber = false
+  vim.wo[state.winid].number = false
+  vim.wo[state.winid].relativenumber = false
   -- vim.wo[state.win].conceallevel = 0
   -- Set up keymaps for the dialog
-  local keymap_opts = { buffer = state.buf, silent = true }
+  local keymap_opts = { buffer = state.bufrn, silent = true }
 
   -- Close dialog
   vim.keymap.set("n", "q", function()
-    vim.api.nvim_win_close(state.win, true)
+    vim.api.nvim_win_close(state.winid, true)
   end, keymap_opts)
 
   -- Send content to terminal and close
   vim.keymap.set({ "n", "i" }, "<C-s>", function()
-    local data = table.concat(vim.api.nvim_buf_get_lines(state.buf, 0, -1, false), "\n")
+    local data = table.concat(vim.api.nvim_buf_get_lines(state.bufrn, 0, -1, false), "\n")
     local terminal = require("aider.terminal")
     terminal.send(data, true)
-    vim.api.nvim_win_close(state.win, true)
+    vim.api.nvim_win_close(state.winid, true)
   end, keymap_opts)
 
   -- Clear content
   vim.keymap.set("n", "<C-l>", function()
-    vim.api.nvim_buf_set_lines(state.buf, 0, -1, false, {})
+    vim.api.nvim_buf_set_lines(state.bufrn, 0, -1, false, {})
     state.content = ""
   end, keymap_opts)
 
