@@ -81,18 +81,23 @@ function M.get_visual_selection()
 
   local selected_text = table.concat(lines, "\n")
 
-  return selected_text
+  return selected_text, start_line, end_line, start_col, end_col
 end
 
 --- Wrap content in a code block template
 ---@param input string The content to wrap
 ---@param filetype string The language for the code block
+---@param start_line? integer The start line number (default: nil)
+---@param end_line? integer The end line number (default: nil)
+---@param path? string The file path (default: nil)
 ---@return string
-function M.template_code(input, filetype)
+function M.template_code(input, filetype, start_line, end_line, path)
   if #input == 0 then
     return ""
   end
-  local tpl = "```" .. filetype .. "\n"
+  local tpl = ""
+  tpl = tpl .. "file:" .. path .. start_line .. ":" .. end_line .. "\n"
+  tpl = tpl .. "```" .. filetype .. "\n"
   tpl = tpl .. input
   tpl = tpl .. "\n```\n"
   return tpl

@@ -6,6 +6,8 @@ local state = {
   bufrn = nil,
   winid = nil,
   content = nil, -- Initialize as nil instead of empty string
+  line_start = nil,
+  line_end = nil,
   filetype = "markdown",
 }
 
@@ -13,6 +15,8 @@ function M.toggle(opts)
   opts = opts or {}
   state.content = opts.content or state.content or ""
   state.filetype = opts.filetype or state.filetype
+  state.line_start = opts.line_start or state.line_start
+  state.line_end = opts.line_end or state.line_end
 
   -- 如果窗口存在且有效，則關閉它
   if state.winid and vim.api.nvim_win_is_valid(state.winid) then
@@ -40,7 +44,9 @@ function M.open(opts)
     vim.bo[state.bufrn].filetype = "markdown"
   end
 
-  local content = util.template_code(state.content, state.filetype)
+  -- get file path
+  local path = vim.fn.expand("%:p")
+  local content = util.template_code(state.content, state.filetype, state.line_start, state.line_end, path)
   vim.api.nvim_buf_set_lines(state.bufrn, 0, -1, false, vim.split(content or "", "\n"))
 
   -- Close existing window if open

@@ -42,12 +42,13 @@ end
 ---Open a floating dialog for multi-line text input
 ---@return nil
 function M.dialog()
-  local lines = util.get_visual_selection()
+  local lines, line_start, line_end = util.get_visual_selection()
+
   local filetype = vim.bo.filetype
 
   local dialog = require("aider.dialog")
   if lines then
-    dialog.toggle({ content = lines, filetype = filetype })
+    dialog.toggle({ content = lines, filetype = filetype, line_start = line_start, line_end = line_end })
   else
     dialog.toggle({ filetype = filetype })
   end
