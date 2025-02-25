@@ -15,6 +15,11 @@ local state = {
 
 ---@class AiderTerminalConfig
 local config = {
+  -- openrouter/anthropic/claude-3.7-sonnet
+  -- openrouter/deepseek/deepseek-chat
+  -- openrouter/deepseek/deepseek-r1
+  -- gemini/gemini-2.0-flash
+  --
   default_model = "gemini/gemini-2.0-flash",
   default_language = "Traditional-Chinese",
   extra_config = "", -- 用户可以添加额外的 Aider 配置
