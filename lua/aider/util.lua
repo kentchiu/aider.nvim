@@ -86,7 +86,7 @@ end
 
 --- Wrap content in a code block template
 ---@param input string The content to wrap
----@param filetype string The language for the code block
+---@param filetype? string The language for the code block (default: nil)
 ---@param start_line? integer The start line number (default: nil)
 ---@param end_line? integer The end line number (default: nil)
 ---@param path? string The file path (default: nil)
@@ -96,8 +96,16 @@ function M.template_code(input, filetype, start_line, end_line, path)
     return ""
   end
   local tpl = ""
-  tpl = tpl .. "file:" .. path .. start_line .. ":" .. end_line .. "\n"
-  tpl = tpl .. "```" .. filetype .. "\n"
+
+  if start_line and end_line and path then
+    tpl = tpl .. "file:" .. path .. ":" .. start_line .. "-" .. end_line .. "\n"
+  end
+
+  if filetype then
+    tpl = tpl .. "```" .. filetype .. "\n"
+  else
+    tpl = tpl .. "```" .. "\n"
+  end
   tpl = tpl .. input
   tpl = tpl .. "\n```\n"
   return tpl

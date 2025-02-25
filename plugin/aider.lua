@@ -55,8 +55,9 @@ end, {
 -- vim.keymap.set("v", "<leader>aa", "<cmd>AiderTest<cr>", { desc = "Adier Test" })
 vim.keymap.set("n", "<leader>aa", "<cmd>Aider<cr>", { desc = "Toggle Adier" })
 vim.keymap.set("n", "<leader>af", "<cmd>AiderFix<cr>", { desc = "Fix Diagnostic" })
-vim.keymap.set("n", "<leader>ad", "<cmd>AiderDialog<cr>", { desc = "Fix Dialog" })
-vim.keymap.set("v", "<leader>ad", "<cmd>AiderDialog<cr>", { desc = "Fix Dialog" })
+vim.keymap.set("v", "<leader>af", "<cmd>AiderFix<cr>", { desc = "Fix Diagnostic" })
+vim.keymap.set("n", "<leader>ad", "<cmd>AiderDialog<cr>", { desc = "Open Dialog" })
+vim.keymap.set("v", "<leader>ad", "<cmd>AiderDialog<cr>", { desc = "Open Dialog" })
 vim.keymap.set("n", "<leader>a+", "<cmd>AiderAddFile<cr>", { desc = "Add Current File" })
 vim.keymap.set("n", "<leader>a-", "<cmd>AiderDropFile<cr>", { desc = "Drop Current File" })
 

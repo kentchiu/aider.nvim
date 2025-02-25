@@ -6,15 +6,12 @@ local state = {
   bufrn = nil,
   winid = nil,
   content = nil, -- Initialize as nil instead of empty string
-  line_start = nil,
-  line_end = nil,
-  filetype = "markdown",
 }
 
 function M.toggle(opts)
   opts = opts or {}
   state.content = opts.content or state.content or ""
-  state.filetype = opts.filetype or state.filetype
+  -- state.filetype = opts.filetype or state.filetype
   state.line_start = opts.line_start or state.line_start
   state.line_end = opts.line_end or state.line_end
 
@@ -45,9 +42,7 @@ function M.open(opts)
   end
 
   -- get file path
-  local path = vim.fn.expand("%:p")
-  local content = util.template_code(state.content, state.filetype, state.line_start, state.line_end, path)
-  vim.api.nvim_buf_set_lines(state.bufrn, 0, -1, false, vim.split(content or "", "\n"))
+  vim.api.nvim_buf_set_lines(state.bufrn, 0, -1, false, vim.split(state.content or "", "\n"))
 
   -- Close existing window if open
   if state.winid and vim.api.nvim_win_is_valid(state.winid) then
@@ -76,7 +71,7 @@ function M.open(opts)
   -- Create the floating window
   state.winid = vim.api.nvim_open_win(state.bufrn, true, win_opts)
 
-  -- 設置行號
+  vim.wo[state.winid].wrap = true
   vim.wo[state.winid].number = false
   vim.wo[state.winid].relativenumber = false
   -- vim.wo[state.win].conceallevel = 0

@@ -6,27 +6,45 @@ local util = require("aider.util")
 ---@return nil
 function M.fix()
   local terminal = require("aider.terminal")
-  local line = vim.api.nvim_win_get_cursor(0)[1] - 1
-  local diagnostics = vim.diagnostic.get(0, { lnum = line })
+  local lines, line_start, line_end = util.get_visual_selection()
+  local filename = vim.fn.expand("%")
+  local diagnostics = {}
+  local code
+
+  if lines then
+    -- Visual selection exists, get diagnostics for the selection
+    for i = line_start, line_end do
+      local line_diagnostics = vim.diagnostic.get(0, { lnum = i })
+      for _, diagnostic in ipairs(line_diagnostics) do
+        table.insert(diagnostics, diagnostic)
+      end
+    end
+    code = lines
+  else
+    -- No visual selection, get diagnostics for the current line
+    line_start = vim.api.nvim_win_get_cursor(0)[1] - 1
+    line_end = line_start + 1
+    diagnostics = vim.diagnostic.get(0, { lnum = line_start })
+    code = vim.api.nvim_buf_get_lines(0, line_start, line_end, false)[1]
+  end
 
   if #diagnostics > 0 then
-    local filename = vim.fn.expand("%")
-    local current_line = vim.api.nvim_buf_get_lines(0, line, line + 1, false)[1]
-    -- terminal.send("/add " .. filename, true)
-    pcall(terminal.send, "/add" .. filename, true)
+    pcall(terminal.send, "/add " .. filename, true)
 
+    local content = ""
     for _, diagnostic in ipairs(diagnostics) do
-      local problem = vim.inspect(diagnostic):gsub("\n%s*", " ")
-      local content = util.template_code(current_line, vim.bo.filetype)
-      content = content .. "For the code present, we get this error: \n" .. util.template_code(problem, "lua") .. "\n"
-      content = content .. "How can I resolve this? If you propose a fix, please make it concise."
-      require("aider.dialog").toggle({
-        content = content,
-        filetype = "markdown",
-      })
+      content = content .. util.template_code(code, vim.bo.filetype, line_start, line_end, filename)
+      content = content
+        .. "For the code present, we get this error: \n\n"
+        .. util.template_code(diagnostic.message)
+        .. "\n"
+      content = content .. "How can I resolve this? If you propose a fix, please make it concise.\n"
+      content = content .. "\n\n"
+      require("aider.dialog").toggle({ content = content })
+      vim.api.nvim_command("stopinsert")
     end
   else
-    vim.notify("No diagnostics for current line")
+    vim.notify("No diagnostics for current selection/line")
   end
 end
 
@@ -42,15 +60,19 @@ end
 ---Open a floating dialog for multi-line text input
 ---@return nil
 function M.dialog()
+  local mode = vim.api.nvim_get_mode().mode
   local lines, line_start, line_end = util.get_visual_selection()
-
-  local filetype = vim.bo.filetype
+  if mode == "n" then
+    lines = nil
+  end
 
   local dialog = require("aider.dialog")
   if lines then
-    dialog.toggle({ content = lines, filetype = filetype, line_start = line_start, line_end = line_end })
+    local fullpath = vim.fn.expand("%:p")
+    local filetype = vim.bo.filetype
+    dialog.toggle({ content = util.template_code(lines, filetype, line_start, line_end, fullpath) })
   else
-    dialog.toggle({ filetype = filetype })
+    dialog.toggle({ content = "" })
   end
 end
 
