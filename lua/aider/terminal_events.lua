@@ -2,106 +2,52 @@ local M = {}
 
 local util = require("aider.util")
 
+---@param str string The raw terminal line
+---@return string cleaned_str The cleaned line
+local function clean_terminal_line(str)
+  -- 移除 ANSI 控制序列
+  str = str:gsub("\27%[%d+m", "")
+  str = str:gsub("\27%[m", "")
+  -- 移除控制字元
+  str = str:gsub("%c", "")
+  -- 移除所有 UTF-8 框線字元 (E2 94 80)
+  str = str:gsub("\226\148\128+", "")
+  -- 移除首尾空白
+  str = str:gsub("^%s*(.-)%s*$", "%1")
+  return str
+end
+
 ---@class AiderState
 ---@field history string[][] 儲存buffer變化的歷史記錄
 ---@field max_history number 最大歷史記錄數量
----@field current_chat_mode string|nil 當前的聊天模式
----@field mode_change_callbacks function[] 模式變化的回調函數表
 ---@field editable_files string[] 可編輯文件路徑列表
 ---@field readonly_files string[] 唯讀文件路徑列表
-local state = {
+---@field ready boolean is adier ready or processing
+M.state = {
   history = {},
   max_history = 1000,
-  current_chat_mode = nil,
-  mode_change_callbacks = {},
-  editable_files = {},
   readonly_files = {},
+  editable_files = {},
+  wait_for_feedbak = nil,
+  ready = false,
+}
+
+local patterns = require("aider.patterns")
+
+M.PATTERNS = {
+  editable = patterns.EditableHandler:new(),
+  readonly = patterns.ReadonlyHandler:new(),
+  prompt = patterns.PromptHandler:new(),
+  ready = patterns.ReadyHandler:new(),
+  feedback = patterns.FeedbackHandler:new(),
 }
 
 function M.get_lines_history()
-  return state.history
+  return M.state.history
 end
 
 function M.clear_lines_history()
-  state.history = {}
-end
-
-function M.reset_state()
-  state.history = {}
-  state.current_chat_mode = nil
-  state.mode_change_callbacks = {}
-  state.editable_files = {}
-  state.readonly_files = {}
-end
-
-function M.on_mode_change(callback)
-  table.insert(state.mode_change_callbacks, callback)
-end
-
-function M.get_current_mode()
-  return state.current_chat_mode
-end
-
-function M.get_editable_files()
-  return state.editable_files
-end
-
-function M.get_readonly_files()
-  return state.readonly_files
-end
-
-function M.check_chat_mode(line)
-  local new_mode
-  if line:match("^>%s*$") then
-    new_mode = "code"
-  elseif line:match("^ask>%s*$") then
-    new_mode = "ask"
-  elseif line:match("^architect>%s*$") then
-    new_mode = "architect"
-  end
-
-  -- 只在模式確實改變時觸發回調
-  if new_mode and new_mode ~= state.current_chat_mode then
-    state.current_chat_mode = new_mode
-    util.log("Chat mode changed to: " .. new_mode, vim.log.levels.INFO)
-    -- 觸發所有註冊的回調
-    for _, callback in ipairs(state.mode_change_callbacks) do
-      callback(new_mode)
-    end
-  end
-end
-
-function M.check_editable(line)
-  local editable_pattern = "^editable>%s*(.-)%s*$"
-  local paths = line:match(editable_pattern)
-  if paths then
-    -- 清空之前的列表
-    state.editable_files = {}
-    -- 分割路徑字符串並存儲
-    for path in paths:gmatch("[^%s,]+") do
-      table.insert(state.editable_files, path)
-    end
-    util.log("Editable files updated: " .. vim.inspect(state.editable_files), vim.log.levels.INFO)
-    return true
-  end
-  return false
-end
-
-function M.check_readonly(line)
-  -- 修改模式以匹配 "Readonly:" 格式
-  local readonly_pattern = "^Readonly:?%s*(.-)%s*$"
-  local paths = line:match(readonly_pattern)
-  if paths then
-    -- 清空之前的列表
-    state.readonly_files = {}
-    -- 分割路徑字符串並存儲
-    for path in paths:gmatch("[^%s,]+") do
-      table.insert(state.readonly_files, path)
-    end
-    util.log("Readonly files updated: " .. vim.inspect(state.readonly_files), vim.log.levels.INFO)
-    return true
-  end
-  return false
+  M.state.history = {}
 end
 
 ---處理 buffer lines 變化的回調函數
@@ -139,7 +85,6 @@ function M.handle_lines(buf, changedtick, first_line, last_line, last_line_in_ra
   )
 
   util.log("lines args: " .. args_str, vim.log.levels.TRACE)
-
   -- Get the changed lines content
   local lines = vim.api.nvim_buf_get_lines(buf, first_line, last_line, false)
 
@@ -147,46 +92,71 @@ function M.handle_lines(buf, changedtick, first_line, last_line, last_line_in_ra
   if #lines > 0 then
     util.log("aider lines: " .. vim.inspect(lines), vim.log.levels.TRACE)
 
-    local function remove_control_sequences(str)
-      -- 移除 ANSI 控制序列
-      str = str:gsub("\27%[%d+m", "")
-      str = str:gsub("\27%[m", "")
-      -- 移除控制字元
-      str = str:gsub("%c", "")
-      --移除所有 UTF-8 框線字元 (E2 94 80)
-      str = str:gsub("\226\148\128+", "")
-      -- 移除重複的空格
-      -- str = str:gsub("%s+", " ")
-      -- 移除首尾空白
-      str = str:gsub("^%s*(.-)%s*$", "%1")
-      return str
-    end
-
     for index, line in ipairs(lines) do
-      -- 移除控制序列
-      local clean_line = remove_control_sequences(line)
+      -- 清理並解析每一行
+      local clean_line = clean_terminal_line(line)
+
+      -- 只處理非空行
       if clean_line:match("%S") then
-        -- 只有當行有內容時才輸出 hex
+        -- Debug 用的 hex 輸出
         local hex = line:gsub(".", function(c)
           return string.format("%02X ", string.byte(c))
         end)
         util.log(string.format("%d -- Raw hex: %s", index, hex), vim.log.levels.TRACE)
+        util.log(string.format("Cleaned line: %s", clean_line), vim.log.levels.TRACE)
 
-        local msg = string.format("%s", clean_line)
-        util.log(msg, vim.log.levels.DEBUG)
+        util.log(clean_line, vim.log.levels.DEBUG)
+        -- 解析清理後的行
+        M.parse(clean_line)
       end
-      M.check_editable(clean_line)
-      M.check_readonly(clean_line)
-      M.check_chat_mode(clean_line)
     end
 
-    table.insert(state.history, lines)
+    table.insert(M.state.history, lines)
 
     -- Maintain history size limit
-    while #state.history > state.max_history do
-      table.remove(state.history, 1)
+    while #M.state.history > M.state.max_history do
+      table.remove(M.state.history, 1)
     end
   end
+end
+
+function M.parse(line)
+  if line == "" then
+    return
+  end
+
+  -- reset ready state if any changed
+  M.state.ready = false
+  M.state.wait_for_feedbak = nil
+
+  for _, parser in pairs(M.PATTERNS) do
+    if parser.enabled then
+      local matches = { line:match(parser.pattern) }
+      if #matches > 0 then
+        parser:handle(matches, M.state)
+        break -- 假設每行只匹配一個pattern
+      end
+    end
+  end
+end
+
+function M.to_string()
+  vim.notify(vim.inspect(M.state), vim.log.levels.INFO)
+end
+
+function M.reset_state()
+  M.state.history = {}
+  M.state.max_history = 1000
+  M.state.readonly_files = {}
+  M.state.editable_files = {}
+  M.state.ready = false
+
+  -- Enable patterns
+  M.PATTERNS.readonly.enabled = true
+  M.PATTERNS.editable.enabled = true
+  M.PATTERNS.prompt.enabled = true
+  M.PATTERNS.ready.enabled = true
+  M.PATTERNS.feedback.enabled = true
 end
 
 return M

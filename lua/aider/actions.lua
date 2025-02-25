@@ -12,12 +12,14 @@ function M.fix()
   if #diagnostics > 0 then
     local filename = vim.fn.expand("%")
     local current_line = vim.api.nvim_buf_get_lines(0, line, line + 1, false)[1]
-    terminal.send("/add " .. filename, true)
+    -- terminal.send("/add " .. filename, true)
+    pcall(terminal.send, "/add" .. filename, true)
 
     for _, diagnostic in ipairs(diagnostics) do
       local problem = vim.inspect(diagnostic):gsub("\n%s*", " ")
       local content = util.template_code(current_line, vim.bo.filetype)
-      content = content .. " Fix this diagnostic: \n" .. util.template_code(problem, "lua")
+      content = content .. "For the code present, we get this error: \n" .. util.template_code(problem, "lua") .. "\n"
+      content = content .. "How can I resolve this? If you propose a fix, please make it concise."
       require("aider.dialog").toggle({
         content = content,
         filetype = "markdown",
@@ -26,7 +28,6 @@ function M.fix()
   else
     vim.notify("No diagnostics for current line")
   end
-  local foo = "bar"
 end
 
 ---Send the current visual selection to aider

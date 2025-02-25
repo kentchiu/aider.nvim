@@ -2,14 +2,29 @@
 local M = {}
 local terminal_events = require("aider.terminal_events")
 local util = require("aider.util")
+
 util.log("aider/init.lua")
 
+---@class AiderTerminalState
 local state = {
   bufnr = nil,
   winid = nil,
   initialized = false,
   job_id = nil,
 }
+
+---@class AiderTerminalConfig
+local config = {
+  default_model = "gemini/gemini-2.0-flash",
+  default_language = "Traditional-Chinese",
+  extra_config = "", -- 用户可以添加额外的 Aider 配置
+}
+
+---Configures the Aider terminal with user settings.
+---@param user_config AiderTerminalConfig User-provided configuration that overrides the defaults.
+function M.setup(user_config)
+  config = vim.tbl_deep_extend("force", config, user_config or {})
+end
 
 ---Check if terminal buffer is visible in any window
 ---@return boolean
@@ -25,6 +40,7 @@ local function is_visible()
   return false
 end
 
+---Hides the Aider terminal window if it is currently visible.
 function M.hide()
   if state.winid and vim.api.nvim_win_is_valid(state.winid) then
     vim.api.nvim_win_close(state.winid, true)
@@ -32,51 +48,83 @@ function M.hide()
   end
 end
 
+---Builds the Aider command line configuration string.
+---@return string The Aider command line configuration.
+local function build_aider_config()
+  local aider_config = "--no-auto-commits --watch-files --no-auto-lint"
+  aider_config = aider_config .. " --read .cursorrules"
+  aider_config = aider_config .. " --model " .. config.default_model
+  aider_config = aider_config .. " --no-show-release-notes"
+  aider_config = aider_config .. " --no-check-update"
+  aider_config = aider_config .. " --chat-language " .. config.default_language
+  aider_config = aider_config .. " " .. config.extra_config
+
+  return aider_config
+end
+
+---Attaches buffer to handle input
+---@return nil
+local function attach_buffer()
+  vim.api.nvim_buf_attach(state.bufnr, false, {
+    on_lines = function(_, buf, changedtick, first_line, last_line, last_line_in_range, byte_count)
+      terminal_events.handle_lines(buf, changedtick, first_line, last_line, last_line_in_range, byte_count)
+    end,
+  })
+end
+
+---Sets up key mappings for the Aider terminal buffer.
+---@return nil
+local function setup_keymaps()
+  vim.keymap.set("t", "<ESC>", [[<C-\><C-n>]], { buffer = state.bufnr, desc = "Exit terminal mode" })
+  vim.keymap.set("n", "q", "<CMD>Aider<CR>", { buffer = state.bufnr, desc = "Close aider chat window" })
+end
+
+---Sets up autocommands for the Aider terminal buffer.
+---@return nil
+local function setup_autocommands()
+  vim.api.nvim_create_autocmd({ "WinEnter", "FocusGained" }, {
+    buffer = state.bufnr,
+    callback = function()
+      vim.cmd("startinsert")
+    end,
+    desc = "Enter to insert mode when terminal gains focus",
+  })
+end
+
+---Initializes the Aider terminal buffer and window.
+---@return nil
+local function initialize_terminal()
+  local win_config = {
+    split = "right",
+    win = 0,
+  }
+
+  state.bufnr = vim.api.nvim_create_buf(false, true)
+  state.winid = vim.api.nvim_open_win(state.bufnr, true, win_config)
+  vim.api.nvim_set_current_win(state.winid)
+
+  vim.wo[state.winid].number = false
+  vim.wo[state.winid].relativenumber = false
+  vim.cmd("startinsert")
+
+  setup_keymaps()
+  attach_buffer()
+  setup_autocommands()
+end
+
+---Starts the Aider process in the terminal buffer.
+---@return nil
+local function start_aider()
+  local aider_config = build_aider_config()
+  state.job_id = vim.fn.jobstart("aider " .. aider_config, { term = true })
+end
+
+---Starts the Aider terminal if it is not already running.
+---@param args table Arguments passed to the start function (currently unused).
 function M.start(args)
-  -- 如果 buffer 不存在才創建新的
   if not state.bufnr or not vim.api.nvim_buf_is_valid(state.bufnr) then
-    local config = "--no-auto-commits --watch-files --no-auto-lint"
-    config = config .. " --read .cursorrules"
-    -- config = config .. " --model deepseek/deepseek-chat"
-    config = config .. " --model r1"
-    config = config .. " --no-show-release-notes"
-    config = config .. " --no-check-update "
-    -- config = config .. " --no-pretty "
-    -- config = config .. " --no-stream "
-    config = config .. " --chat-language zh-TW "
-
-    local win_config = {
-      split = "right",
-      win = 0,
-    }
-
-    state.bufnr = vim.api.nvim_create_buf(false, true)
-    state.winid = vim.api.nvim_open_win(state.bufnr, true, win_config)
-    vim.api.nvim_set_current_win(state.winid)
-
-    -- config
-    vim.wo[state.winid].number = false
-    vim.wo[state.winid].relativenumber = false
-    vim.cmd("startinsert")
-    vim.keymap.set("t", "<ESC>", [[<C-\><C-n>]], { buffer = state.bufnr, desc = "Exit terminal mode" })
-    vim.keymap.set("n", "q", "<CMD>Aider<CR>", { buffer = state.bufnr, desc = "Close aider chat window" })
-
-    state.job_id = vim.fn.jobstart("aider " .. config, { term = true })
-
-    -- -- 監聽 buffer 變化來捕獲輸入
-    vim.api.nvim_buf_attach(state.bufnr, false, {
-      on_lines = function(_, buf, changedtick, first_line, last_line, last_line_in_range, byte_count)
-        terminal_events.handle_lines(buf, changedtick, first_line, last_line, last_line_in_range, byte_count)
-      end,
-    })
-
-    vim.api.nvim_create_autocmd({ "WinEnter", "FocusGained" }, {
-      buffer = state.bufnr,
-      callback = function()
-        vim.cmd("startinsert")
-      end,
-      desc = "Enter to insert mode when terminal gains focus",
-    })
+    initialize_terminal()
+    start_aider()
   end
 end
 
@@ -97,6 +145,7 @@ function M.send(text, enter)
   vim.fn.chansend(vim.bo[state.bufnr].channel, data)
 end
 
+---Toggles the visibility of the Aider terminal.
 function M.toggle()
   util.log("aider info: " .. vim.inspect(state))
   if not state.bufnr or not vim.api.nvim_buf_is_valid(state.bufnr) then
