@@ -71,5 +71,7 @@ if vim.fn.glob(".aider.*") ~= "" then
 else
   util.default_level = vim.log.levels.OFF
 end
+-- turn off log
+util.default_level = vim.log.levels.OFF
 util.log("adider.nvim start")
 require("aider")

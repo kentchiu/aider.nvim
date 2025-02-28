@@ -161,8 +161,9 @@ function M.toggle()
     local win_config = {
       split = "right",
       win = 0,
+      title = "Aider",
     }
-    state.winid = vim.api.nvim_open_win(state.bufnr, true, win_config)
+    state.winid = vim.api.nvim_open_win(state.bufnr, true, win_config or {})
     vim.api.nvim_set_current_win(state.winid)
     vim.cmd("startinsert")
   end
