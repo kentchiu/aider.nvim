@@ -84,7 +84,7 @@ function M.open(opts)
   end, keymap_opts)
 
   -- Send content to terminal and close
-  vim.keymap.set({ "n", "i" }, "<C-s>", function()
+  vim.keymap.set({ "n", "i" }, "<M-s>", function()
     local data = table.concat(vim.api.nvim_buf_get_lines(state.bufrn, 0, -1, false), "\n")
     local terminal = require("aider.terminal")
     terminal.send(data, true)
@@ -92,7 +92,7 @@ function M.open(opts)
   end, keymap_opts)
 
   -- Clear content
-  vim.keymap.set("n", "<C-l>", function()
+  vim.keymap.set("n", "<M-l>", function()
     vim.api.nvim_buf_set_lines(state.bufrn, 0, -1, false, {})
     state.content = ""
   end, keymap_opts)

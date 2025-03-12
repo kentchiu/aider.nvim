@@ -53,7 +53,7 @@ end, {
 })
 
 -- vim.keymap.set("v", "<leader>aa", "<cmd>AiderTest<cr>", { desc = "Aider Test" })
-vim.keymap.set({ "n", "v" }, "<M-a>", "<cmd>Aider<cr>", { desc = "Toggle Aider" })
+vim.keymap.set({ "n", "v", "i" }, "<M-a>", "<cmd>Aider<cr>", { desc = "Toggle Aider" })
 vim.keymap.set("n", "<leader>aa", "<cmd>Aider<cr>", { desc = "Toggle Aider" })
 vim.keymap.set("n", "<leader>af", "<cmd>AiderFix<cr>", { desc = "Fix Diagnostic" })
 vim.keymap.set("v", "<leader>af", "<cmd>AiderFix<cr>", { desc = "Fix Diagnostic" })
