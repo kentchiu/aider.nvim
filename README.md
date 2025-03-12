@@ -4,6 +4,7 @@ Aider neovim plugin
 
 ## TODO
 
+- [ ] aider run in background when windows is close.
 - [ ] send code should include path and line info
 - [ ] tree-sitter on response
 - [x] :AiderNo
