@@ -82,6 +82,7 @@ end
 local function setup_keymaps()
   vim.keymap.set("t", "<ESC>", [[<C-\><C-n>]], { buffer = state.bufnr, desc = "Exit terminal mode" })
   vim.keymap.set("n", "q", "<CMD>Aider<CR>", { buffer = state.bufnr, desc = "Close aider chat window" })
+  vim.keymap.set("t", "<M-a>", "<CMD>Aider<CR>", { buffer = state.bufnr, desc = "Close aider chat window" })
 end
 
 ---Sets up autocommands for the Aider terminal buffer.
@@ -125,8 +126,7 @@ local function start_aider()
 end
 
 ---Starts the Aider terminal if it is not already running.
----@param args table Arguments passed to the start function (currently unused).
-function M.start(args)
+function M.start()
   if not state.bufnr or not vim.api.nvim_buf_is_valid(state.bufnr) then
     initialize_terminal()
     start_aider()
@@ -161,7 +161,6 @@ function M.toggle()
     local win_config = {
       split = "right",
       win = 0,
-      title = "Aider",
     }
     state.winid = vim.api.nvim_open_win(state.bufnr, true, win_config or {})
     vim.api.nvim_set_current_win(state.winid)
