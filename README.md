@@ -4,6 +4,9 @@ Aider neovim plugin
 
 ## TODO
 
+- [ ] <M-+> to add current files
+- [ ] <M--> to drop current files
+- [ ] <M-d> to drop all files
 - [ ] auto start (with deffer) aider if necessary when send to aider.
 - [ ] tree-sitter on response
 - [x] aider run in background when windows is close.
