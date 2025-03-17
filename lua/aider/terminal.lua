@@ -59,7 +59,9 @@ end
 local function build_aider_config()
   local aider_config = "--no-auto-commits --watch-files --no-auto-lint"
   aider_config = aider_config .. " --read .cursorrules"
-  aider_config = aider_config .. " --model " .. config.default_model
+  aider_config = aider_config
+    .. " --architect --model openrouter/deepseek/deepseek-r1 --editor-model gemini/gemini-2.0-flash --weak-model gemini/gemini-2.0-flash"
+  -- aider_config = aider_config .. " --model " .. config.default_model
   aider_config = aider_config .. " --no-show-release-notes"
   aider_config = aider_config .. " --no-check-update"
   aider_config = aider_config .. " --chat-language " .. config.default_language
