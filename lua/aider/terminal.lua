@@ -11,6 +11,7 @@ local state = {
   winid = nil,
   initialized = false,
   job_id = nil,
+  last_cursor_col = 1, -- 追蹤最後光標列位置
 }
 
 ---@class AiderTerminalConfig
@@ -67,12 +68,47 @@ local function build_aider_config()
   return aider_config
 end
 
----Attaches buffer to handle input
+---Attaches buffer to handle input and setup automatic horizontal scrolling
 ---@return nil
 local function attach_buffer()
+  -- 監聽緩衝區內容變化
   vim.api.nvim_buf_attach(state.bufnr, false, {
     on_lines = function(_, buf, changedtick, first_line, last_line, last_line_in_range, byte_count)
       terminal_events.handle_lines(buf, changedtick, first_line, last_line, last_line_in_range, byte_count)
+
+      -- 自動調整水平滾動位置，確保左側內容可見
+      vim.schedule(function()
+        if state.winid and vim.api.nvim_win_is_valid(state.winid) then
+          -- 獲取終端緩衝區中最後一行的內容
+          local line_count = vim.api.nvim_buf_line_count(buf)
+          if line_count > 0 then
+            local last_line_content = vim.api.nvim_buf_get_lines(buf, line_count - 1, line_count, false)[1]
+
+            -- 確保顯示區域包含提示符 (通常在行首)
+            if last_line_content and #last_line_content > 0 then
+              -- 強制將視圖滾動到最左側，確保行首可見
+              local view = vim.fn.winsaveview()
+              view.leftcol = 0
+              vim.fn.winrestview(view)
+            end
+          end
+        end
+      end)
+    end,
+  })
+
+  -- 監聽終端輸出事件，確保視圖自動調整
+  vim.api.nvim_create_autocmd("TermChanged", {
+    buffer = state.bufnr,
+    callback = function()
+      vim.schedule(function()
+        if state.winid and vim.api.nvim_win_is_valid(state.winid) then
+          -- 確保滾動位置正確，顯示行首
+          local view = vim.fn.winsaveview()
+          view.leftcol = 0
+          vim.fn.winrestview(view)
+        end
+      end)
     end,
   })
 end
@@ -83,6 +119,7 @@ local function setup_keymaps()
   vim.keymap.set("t", "<ESC>", [[<C-\><C-n>]], { buffer = state.bufnr, desc = "Exit terminal mode" })
   vim.keymap.set("n", "q", "<CMD>Aider<CR>", { buffer = state.bufnr, desc = "Close aider chat window" })
   vim.keymap.set("t", "<M-a>", "<CMD>Aider<CR>", { buffer = state.bufnr, desc = "Close aider chat window" })
+  -- 僅保留基本必要的按鍵映射，移除所有滾動和調整窗口大小的映射
 end
 
 ---Sets up autocommands for the Aider terminal buffer.
@@ -95,14 +132,31 @@ local function setup_autocommands()
     end,
     desc = "Enter to insert mode when terminal gains focus",
   })
+
+  -- 添加自動滾動位置重置，確保提示符始終可見
+  vim.api.nvim_create_autocmd("TermEnter", {
+    buffer = state.bufnr,
+    callback = function()
+      vim.schedule(function()
+        if state.winid and vim.api.nvim_win_is_valid(state.winid) then
+          local view = vim.fn.winsaveview()
+          view.leftcol = 0
+          vim.fn.winrestview(view)
+        end
+      end)
+    end,
+    desc = "Reset horizontal scroll position when entering terminal mode",
+  })
 end
 
 ---Initializes the Aider terminal buffer and window.
 ---@return nil
 local function initialize_terminal()
   local win_config = {
-    split = "right",
+    split = "below",
     win = 0,
+    -- width = math.floor(vim.o.columns * 0.5), -- 設置合適的初始寬度
+    height = math.floor(vim.o.lines * 0.3),
   }
 
   state.bufnr = vim.api.nvim_create_buf(false, true)
@@ -111,6 +165,9 @@ local function initialize_terminal()
 
   vim.wo[state.winid].number = false
   vim.wo[state.winid].relativenumber = false
+  vim.wo[state.winid].wrap = false
+  -- 設置較大的 sidescrolloff 值以提供更好的水平滾動體驗
+  vim.wo[state.winid].sidescrolloff = 0 -- 設為0，我們自行控制滾動行為
   vim.cmd("startinsert")
 
   setup_keymaps()
@@ -159,8 +216,9 @@ function M.toggle()
     M.hide()
   else
     local win_config = {
-      split = "right",
+      split = "below",
       win = 0,
+      height = math.floor(vim.o.lines * 0.3),
     }
     state.winid = vim.api.nvim_open_win(state.bufnr, true, win_config or {})
     vim.api.nvim_set_current_win(state.winid)
