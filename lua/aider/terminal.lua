@@ -87,7 +87,8 @@ local function attach_buffer()
       vim.schedule(function()
         if state.winid and vim.api.nvim_win_is_valid(state.winid) then
           vim.api.nvim_win_call(state.winid, function()
-            vim.cmd("normal! G")
+            local last_line = vim.api.nvim_buf_line_count(state.bufnr)
+            vim.api.nvim_win_set_cursor(state.winid, { last_line, 0 })
           end)
         end
       end)
