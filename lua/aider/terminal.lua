@@ -83,6 +83,15 @@ local function attach_buffer()
     on_lines = function(_, buf, changedtick, first_line, last_line, last_line_in_range, byte_count)
       terminal_events.handle_lines(buf, changedtick, first_line, last_line, last_line_in_range, byte_count)
 
+      -- 自动移动光标到最后一行
+      vim.schedule(function()
+        if state.winid and vim.api.nvim_win_is_valid(state.winid) then
+          vim.api.nvim_win_call(state.winid, function()
+            vim.cmd("normal! G")
+          end)
+        end
+      end)
+
       -- 自動調整水平滾動位置，確保左側內容可見
       vim.schedule(function()
         if state.winid and vim.api.nvim_win_is_valid(state.winid) then
