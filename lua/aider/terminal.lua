@@ -19,9 +19,8 @@ local config = {
   -- openrouter/anthropic/claude-3.7-sonnet
   -- openrouter/deepseek/deepseek-chat
   -- openrouter/deepseek/deepseek-r1
-  -- gemini/gemini-2.0-flash
-  -- gemini/gemini-2.0-pro
-  --
+  -- 72/100?, $ ?
+  model = " --model gemini-2.5-pro",
   -- 64/100, $13
   -- model = " --architect --model r1 --editor-model sonnet",
   -- 60/93, $18
@@ -32,9 +31,9 @@ local config = {
   -- model =" --model deepseek/deepseek-chat"
   -- 36/100
   -- model =" --model gemini/gemini-2.0-pro-exp-02-05"
-  model = " --architect --model gemini/gemini-2.0-flash-thinking-exp --editor-model gemini/gemini-2.0-pro-exp-02-05 --weak-model gemini/gemini-2.0-pro-exp-02-05",
+  -- model = " --architect --model gemini/gemini-2.0-flash-thinking-exp --editor-model gemini/gemini-2.0-pro-exp-02-05 --weak-model gemini/gemini-2.0-pro-exp-02-05",
   -- model = " --architect --model openrouter/deepseek/deepseek-r1 --editor-model gemini/gemini-2.0-flash --weak-model gemini/gemini-2.0-flash",
-  -- model = "--model" .. "gemini/gemini-2.0-flash",
+  -- model = " --model" .. "gemini/gemini-2.0-flash",
   default_language = "Traditional-Chinese",
   extra_config = "", -- 用户可以添加额外的 Aider 配置
 }
