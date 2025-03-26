@@ -19,7 +19,7 @@ local config = {
   -- openrouter/anthropic/claude-3.7-sonnet
   -- openrouter/deepseek/deepseek-chat
   -- openrouter/deepseek/deepseek-r1
-  -- 72/100?, $ ?
+  -- 73/90?, $ ?
   model = " --model gemini-2.5-pro",
   -- 64/100, $13
   -- model = " --architect --model r1 --editor-model sonnet",
@@ -95,43 +95,9 @@ local function attach_buffer()
       vim.schedule(function()
         if state.winid and vim.api.nvim_win_is_valid(state.winid) then
           vim.api.nvim_win_call(state.winid, function()
-            local last_line = vim.api.nvim_buf_line_count(state.bufnr)
-            vim.api.nvim_win_set_cursor(state.winid, { last_line, 0 })
+            local last_line_num = vim.api.nvim_buf_line_count(state.bufnr)
+            vim.api.nvim_win_set_cursor(state.winid, { last_line_num, 0 })
           end)
-        end
-      end)
-
-      -- 自動調整水平滾動位置，確保左側內容可見
-      vim.schedule(function()
-        if state.winid and vim.api.nvim_win_is_valid(state.winid) then
-          -- 獲取終端緩衝區中最後一行的內容
-          local line_count = vim.api.nvim_buf_line_count(buf)
-          if line_count > 0 then
-            local last_line_content = vim.api.nvim_buf_get_lines(buf, line_count - 1, line_count, false)[1]
-
-            -- 確保顯示區域包含提示符 (通常在行首)
-            if last_line_content and #last_line_content > 0 then
-              -- 強制將視圖滾動到最左側，確保行首可見
-              local view = vim.fn.winsaveview()
-              view.leftcol = 0
-              vim.fn.winrestview(view)
-            end
-          end
-        end
-      end)
-    end,
-  })
-
-  -- 監聽終端輸出事件，確保視圖自動調整
-  vim.api.nvim_create_autocmd("TermChanged", {
-    buffer = state.bufnr,
-    callback = function()
-      vim.schedule(function()
-        if state.winid and vim.api.nvim_win_is_valid(state.winid) then
-          -- 確保滾動位置正確，顯示行首
-          local view = vim.fn.winsaveview()
-          view.leftcol = 0
-          vim.fn.winrestview(view)
         end
       end)
     end,
@@ -158,20 +124,20 @@ local function setup_autocommands()
     desc = "Enter to insert mode when terminal gains focus",
   })
 
-  -- 添加自動滾動位置重置，確保提示符始終可見
-  vim.api.nvim_create_autocmd("TermEnter", {
-    buffer = state.bufnr,
-    callback = function()
-      vim.schedule(function()
-        if state.winid and vim.api.nvim_win_is_valid(state.winid) then
-          local view = vim.fn.winsaveview()
-          view.leftcol = 0
-          vim.fn.winrestview(view)
-        end
-      end)
-    end,
-    desc = "Reset horizontal scroll position when entering terminal mode",
-  })
+  -- vim.api.nvim_create_autocmd("InsertEnter", {
+  --   buffer = state.bufnr,
+  --   callback = function()
+  --     -- 直接設置游標，不使用 vim.schedule，以嘗試立即生效
+  --     -- 確保視窗和緩衝區仍然有效
+  --     if state.winid and vim.api.nvim_win_is_valid(state.winid) and state.bufnr and vim.api.nvim_buf_is_valid(state.bufnr) then
+  --       local last_line_num = vim.api.nvim_buf_line_count(state.bufnr)
+  --       -- 將游標設置到最後一行的末尾
+  --       -- 使用一個非常大的列號 (e.g., 9999) 來表示行尾
+  --       vim.api.nvim_win_set_cursor(state.winid, { last_line_num, 9999 })
+  --     end
+  --   end,
+  --   desc = "Move cursor to the end of the last line on entering insert mode",
+  -- })
 end
 
 ---Initializes the Aider terminal buffer and window.
@@ -188,19 +154,20 @@ local function initialize_terminal()
   local win_config = {
     split = "right",
     win = 0,
-    width = math.floor(vim.o.columns * 0.3), -- 設置合適的初始寬度
+    -- width = math.floor(vim.o.columns * 0.5), -- 設置合適的初始寬度
     -- height = math.floor(vim.o.lines * 0.3),
   }
 
   state.bufnr = vim.api.nvim_create_buf(false, true)
+  vim.bo[state.bufnr].buftype = "prompt" -- 將緩衝區類型設置為 prompt
+  vim.bo[state.bufnr].filetype = "aider" -- 設置文件類型
   state.winid = vim.api.nvim_open_win(state.bufnr, true, win_config)
   vim.api.nvim_set_current_win(state.winid)
 
   vim.wo[state.winid].number = false
   vim.wo[state.winid].relativenumber = false
   vim.wo[state.winid].wrap = false
-  -- 設置較大的 sidescrolloff 值以提供更好的水平滾動體驗
-  vim.wo[state.winid].sidescrolloff = 0 -- 設為0，我們自行控制滾動行為
+  -- 移除 sidescrolloff = 0，使用 Neovim 預設或用戶配置
   vim.cmd("startinsert")
 
   setup_keymaps()
@@ -250,9 +217,9 @@ function M.toggle()
     M.hide()
   else
     local win_config = {
-      split = "below",
+      split = "right",
       win = 0,
-      height = math.floor(vim.o.lines * 0.3),
+      -- height = math.floor(vim.o.lines * 0.5),
     }
     state.winid = vim.api.nvim_open_win(state.bufnr, true, win_config or {})
     vim.api.nvim_set_current_win(state.winid)
