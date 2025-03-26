@@ -1,5 +1,6 @@
 local M = {}
 
+local terminal = require("aider.terminal")
 local util = require("aider.util")
 
 local state = {
@@ -27,6 +28,7 @@ function M.toggle(opts)
 end
 
 function M.open(opts)
+  terminal.start()
   opts = opts or {}
 
   if opts.content then

@@ -22,8 +22,17 @@ local config = {
   -- gemini/gemini-2.0-flash
   -- gemini/gemini-2.0-pro
   --
+  -- 64/100, $13
+  -- model = " --architect --model r1 --editor-model sonnet",
+  -- 60/93, $18
+  -- model = " --model sonnet,"
+  -- 57/97, $5.5
+  -- model = " --model deepseek/deepseek-reasoner",
+  -- 55/100, $1.12
+  -- model =" --model deepseek/deepseek-chat"
+  -- 36/100
+  -- model =" --model gemini/gemini-2.0-pro-exp-02-05"
   model = " --architect --model gemini/gemini-2.0-flash-thinking-exp --editor-model gemini/gemini-2.0-pro-exp-02-05 --weak-model gemini/gemini-2.0-pro-exp-02-05",
-  -- model = " --architect --model openrouter/deepseek/deepseek-r1 --editor-model gemini/gemini-2.0-flash --weak-model gemini/gemini-2.0-flash",
   -- model = " --architect --model openrouter/deepseek/deepseek-r1 --editor-model gemini/gemini-2.0-flash --weak-model gemini/gemini-2.0-flash",
   -- model = "--model" .. "gemini/gemini-2.0-flash",
   default_language = "Traditional-Chinese",
@@ -169,11 +178,19 @@ end
 ---Initializes the Aider terminal buffer and window.
 ---@return nil
 local function initialize_terminal()
+  -- local current_win_heigh = vim.api.nvim_win_get_height(0)
+  -- local current_win_width = vim.api.nvim_win_get_width(0)
+  --
+  -- local split = "below"
+  -- if current_win_width > 160 then
+  --   split = "right"
+  -- end
+
   local win_config = {
-    split = "below",
+    split = "right",
     win = 0,
-    -- width = math.floor(vim.o.columns * 0.5), -- 設置合適的初始寬度
-    height = math.floor(vim.o.lines * 0.3),
+    width = math.floor(vim.o.columns * 0.3), -- 設置合適的初始寬度
+    -- height = math.floor(vim.o.lines * 0.3),
   }
 
   state.bufnr = vim.api.nvim_create_buf(false, true)
@@ -212,6 +229,7 @@ end
 ---@param enter boolean? Whether to send enter key after text (defaults to false)
 ---@return nil
 function M.send(text, enter)
+  M.start()
   -- Use bracketed paste sequences
   local paste_start = "\27[200~" -- paste start
   local paste_end = "\27[201~" -- paste end and enter
