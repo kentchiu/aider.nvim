@@ -180,7 +180,10 @@ end
 ---@return nil
 local function start_aider()
   local aider_config = build_aider_config()
-  state.job_id = vim.fn.jobstart("aider " .. aider_config, { term = true })
+  -- jobstat not work in macOS
+  -- state.job_id = vim.fn.jobstart("aider " .. aider_config, { term = true })
+  -- termopen work in macOS and windows
+  state.job_id = vim.fn.termopen("aider " .. aider_config)
 end
 
 ---Starts the Aider terminal if it is not already running.
