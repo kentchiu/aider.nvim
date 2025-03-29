@@ -1,6 +1,6 @@
-# aider.nvim
+# Aider.nvim
 
-Aider neovim plugin
+An AI-assisted coding plugin for Neovim, integrating the Aider CLI tool.
 
 ## TODO
 
@@ -27,3 +27,43 @@ Aider neovim plugin
 - [x] watching file change
 - [x] dialog for prompt
 - [x] fix diagnostic
+
+## System Architecture
+
+### Terminal Processing Flow
+
+```mermaid
+sequenceDiagram
+    participant Terminal as Terminal Buffer
+    participant Events as Terminal Events
+    participant State as State Manager
+    participant Patterns as Pattern Handlers
+    participant EventEmitter as Event System
+
+    Terminal->>Events: Buffer Content Change
+    Events->>Events: clean_terminal_line()
+    
+    rect rgb(200, 200, 255)
+        Note over Events: Process Each Line
+        Events->>Events: Parse Non-Empty Lines
+        Events->>State: Add to History
+        Events->>EventEmitter: emit("lines_changed")
+        
+        Note over Events,Patterns: Pattern Matching Process
+        Events->>Events: Sort Handlers by Priority
+        loop Each Handler
+            Events->>Patterns: Try Match Pattern
+            alt Match Found
+                Patterns->>Patterns: validate()
+                Patterns->>Patterns: preprocess()
+                Patterns->>State: Update State
+                Patterns->>Patterns: postprocess()
+                Patterns->>EventEmitter: emit("pattern_matched")
+            end
+        end
+    end
+
+    Note over State: State Updates
+    State-->>Terminal: Mode Change Callbacks
+    EventEmitter-->>Terminal: Event Notifications
+```

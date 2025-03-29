@@ -1,6 +1,9 @@
 local M = {}
 
 local util = require("aider.util")
+local State = require("aider.state")
+local EventEmitter = require("aider.events")
+local patterns = require("aider.patterns")
 
 ---@param str string The raw terminal line
 ---@return string cleaned_str The cleaned line
@@ -17,22 +20,11 @@ local function clean_terminal_line(str)
   return str
 end
 
----@class AiderState
----@field history string[][] 儲存buffer變化的歷史記錄
----@field max_history number 最大歷史記錄數量
----@field editable_files string[] 可編輯文件路徑列表
----@field readonly_files string[] 唯讀文件路徑列表
----@field ready boolean is adier ready or processing
-M.state = {
-  history = {},
-  max_history = 1000,
-  readonly_files = {},
-  editable_files = {},
-  wait_for_feedbak = nil,
-  ready = false,
-}
+-- 創建狀態實例
+M.state = State:new()
 
-local patterns = require("aider.patterns")
+-- 創建事件發射器實例
+M.events = EventEmitter:new()
 
 M.PATTERNS = {
   editable = patterns.EditableHandler:new(),
@@ -67,15 +59,6 @@ function M.handle_lines(buf, changedtick, first_line, last_line, last_line_in_ra
     byte_count = byte_count,
   }
 
-  -- local args_str = string.format(
-  --   "buf=%d changedtick=%d first_line=%d last_line=%d last_line_in_range=%d byte_count=%d",
-  --   buf,
-  --   changedtick,
-  --   first_line,
-  --   last_line,
-  --   last_line_in_range,
-  --   byte_count
-  -- )
   local args_str = string.format(
     "first_line=%d last_line=%d last_line_in_range=%d byte_count=%d",
     first_line,
@@ -85,6 +68,7 @@ function M.handle_lines(buf, changedtick, first_line, last_line, last_line_in_ra
   )
 
   util.log("lines args: " .. args_str, vim.log.levels.TRACE)
+  
   -- Get the changed lines content
   local lines = vim.api.nvim_buf_get_lines(buf, first_line, last_line, false)
 
@@ -117,6 +101,9 @@ function M.handle_lines(buf, changedtick, first_line, last_line, last_line_in_ra
     while #M.state.history > M.state.max_history do
       table.remove(M.state.history, 1)
     end
+    
+    -- 發出行變更事件
+    M.events:emit("lines_changed", lines)
   end
 end
 
@@ -127,13 +114,23 @@ function M.parse(line)
 
   -- reset ready state if any changed
   M.state.ready = false
-  M.state.wait_for_feedbak = nil
+  M.state.wait_for_feedback = nil
 
-  for _, parser in pairs(M.PATTERNS) do
-    if parser.enabled then
-      local matches = { line:match(parser.pattern) }
-      if #matches > 0 then
-        parser:handle(matches, M.state)
+  -- 按優先級排序處理器
+  local handlers = {}
+  for _, handler in pairs(M.PATTERNS) do
+    table.insert(handlers, handler)
+  end
+  table.sort(handlers, function(a, b) return a.priority < b.priority end)
+
+  -- 依次嘗試每個處理器
+  for _, handler in ipairs(handlers) do
+    if handler.enabled then
+      local matches = { line:match(handler.pattern) }
+      if #matches > 0 and handler:validate(matches) then
+        handler:handle(matches, M.state)
+        -- 發出模式匹配事件
+        M.events:emit("pattern_matched", handler.name, matches)
         break -- 假設每行只匹配一個pattern
       end
     end
@@ -145,18 +142,13 @@ function M.to_string()
 end
 
 function M.reset_state()
-  M.state.history = {}
-  M.state.max_history = 1000
-  M.state.readonly_files = {}
-  M.state.editable_files = {}
-  M.state.ready = false
+  M.state:reset()
+  M.events:clear()
 
   -- Enable patterns
-  M.PATTERNS.readonly.enabled = true
-  M.PATTERNS.editable.enabled = true
-  M.PATTERNS.prompt.enabled = true
-  M.PATTERNS.ready.enabled = true
-  M.PATTERNS.feedback.enabled = true
+  for _, pattern in pairs(M.PATTERNS) do
+    pattern.enabled = true
+  end
 end
 
 return M

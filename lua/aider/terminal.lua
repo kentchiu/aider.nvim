@@ -184,11 +184,15 @@ local function start_aider()
   -- state.job_id = vim.fn.jobstart("aider " .. aider_config, { term = true })
   -- termopen work in macOS and windows
   state.job_id = vim.fn.termopen("aider " .. aider_config)
+  
+
 end
 
 ---Starts the Aider terminal if it is not already running.
 function M.start()
   if not state.bufnr or not vim.api.nvim_buf_is_valid(state.bufnr) then
+    -- Reset states before initializing new terminal
+    terminal_events.reset_state()
     initialize_terminal()
     start_aider()
   end
@@ -216,6 +220,8 @@ end
 function M.toggle()
   util.log("aider info: " .. vim.inspect(state))
   if not state.bufnr or not vim.api.nvim_buf_is_valid(state.bufnr) then
+    -- Reset states before starting new terminal
+    terminal_events.reset_state()
     M.start()
   elseif is_visible() then
     M.hide()
@@ -223,7 +229,6 @@ function M.toggle()
     local win_config = {
       split = "right",
       win = 0,
-      -- height = math.floor(vim.o.lines * 0.5),
     }
     state.winid = vim.api.nvim_open_win(state.bufnr, true, win_config or {})
     vim.api.nvim_set_current_win(state.winid)
