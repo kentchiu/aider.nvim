@@ -82,13 +82,23 @@ function M.add_file()
   local filename = vim.fn.expand("%")
   local terminal = require("aider.terminal")
   local editable_files = events.state.editable_files
-  print("🟥[124]: actions.lua:84: editable_files=" .. vim.inspect(editable_files))
 
-  -- editable_files: lua/aider/actions.lua
-  -- filename: /home/kent/dev/kent/aider.nvim/lua/aider/file_watcher.lua
-  -- check exists before filename add to editable_files, note that, filename maybe absolution path or relatve path.
-  -- however editable_files is always be relactive path
-  -- implement the exist() function to check existing of filename. AI!
+  -- 將絕對路徑轉換為相對路徑
+  local relative_path = vim.fn.fnamemodify(filename, ":.")
+
+  -- 檢查檔案是否已存在於 editable_files
+  local exists = false
+  for _, file in ipairs(editable_files) do
+    if file == relative_path then
+      exists = true
+      break
+    end
+  end
+
+  if exists then
+    vim.notify("File " .. relative_path .. " is already being edited by aider", vim.log.levels.WARN)
+    return
+  end
 
   terminal.send("/add " .. filename, true)
 end
@@ -98,6 +108,14 @@ function M.drop_file()
   local filename = vim.fn.expand("%")
   local terminal = require("aider.terminal")
   terminal.send("/drop " .. filename, true)
+end
+
+function M.list_files()
+  local editable_files = events.state.editable_files
+  vim.notify(vim.inspect(editable_files), vim.log.levels.INFO)
+  vim.ui.select(editable_files, { prompt = "Select a file to edit" }, function(choice)
+    print("🟥[127]: actions.lua:116: choice=" .. vim.inspect(choice))
+  end)
 end
 
 return M
