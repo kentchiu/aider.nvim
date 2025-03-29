@@ -1,5 +1,6 @@
 local M = {}
 
+local events = require("aider.terminal_events")
 local util = require("aider.util")
 
 ---Fix diagnostics at the current cursor position
@@ -80,6 +81,15 @@ end
 function M.add_file()
   local filename = vim.fn.expand("%")
   local terminal = require("aider.terminal")
+  local editable_files = events.state.editable_files
+  print("🟥[124]: actions.lua:84: editable_files=" .. vim.inspect(editable_files))
+
+  -- editable_files: lua/aider/actions.lua
+  -- filename: /home/kent/dev/kent/aider.nvim/lua/aider/file_watcher.lua
+  -- check exists before filename add to editable_files, note that, filename maybe absolution path or relatve path.
+  -- however editable_files is always be relactive path
+  -- implement the exist() function to check existing of filename. AI!
+
   terminal.send("/add " .. filename, true)
 end
 
