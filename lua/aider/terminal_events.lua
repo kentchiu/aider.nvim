@@ -2,11 +2,10 @@ local M = {}
 
 local EventEmitter = require("aider.events")
 local State = require("aider.state")
+local config = require("aider.config")
 local patterns = require("aider.patterns")
 local util = require("aider.util")
 
----@param str string The raw terminal line
----@return string cleaned_str The cleaned line
 local function clean_terminal_line(str)
   -- 移除 ANSI 控制序列
   str = str:gsub("\27%[%d+m", "")
@@ -50,59 +49,77 @@ end
 ---@param last_line_in_range number Last line in changed range
 ---@param byte_count number Number of bytes changed
 function M.handle_lines(buf, changedtick, first_line, last_line, last_line_in_range, byte_count)
-  local args = {
-    buf = buf,
-    changedtick = changedtick,
-    first_line = first_line,
-    last_line = last_line,
-    last_line_in_range = last_line_in_range,
-    byte_count = byte_count,
-  }
-
-  local args_str = string.format(
-    "first_line=%d last_line=%d last_line_in_range=%d byte_count=%d",
-    first_line,
-    last_line,
-    last_line_in_range,
-    byte_count
-  )
-
-  util.log("lines args: " .. args_str, "TRACE")
+  -- Early return if buffer is invalid
+  if not vim.api.nvim_buf_is_valid(buf) then
+    return
+  end
 
   -- Get the changed lines content
   local lines = vim.api.nvim_buf_get_lines(buf, first_line, last_line, false)
 
-  -- Add to lines history
-  if #lines > 0 then
-    util.log("aider lines: " .. vim.inspect(lines), "TRACE")
+  if #lines == 0 then
+    return
+  end
 
-    for index, line in ipairs(lines) do
-      -- 清理並解析每一行
+  -- Only log detailed args in TRACE mode to avoid string formatting overhead
+  if config.get().logger.level == "TRACE" then
+    local args_str = string.format(
+      "first_line=%d last_line=%d last_line_in_range=%d byte_count=%d",
+      first_line,
+      last_line,
+      last_line_in_range,
+      byte_count
+    )
+    util.log("lines args: " .. args_str, "TRACE")
+    util.log("aider lines: " .. vim.inspect(lines), "TRACE")
+  end
+
+  -- Process meaningful lines only
+  local has_meaningful_content = false
+  for index, line in ipairs(lines) do
+    -- Only process non-empty lines
+    if line:match("%S") then
+      has_meaningful_content = true
+
+      -- Clean and parse the line
       local clean_line = clean_terminal_line(line)
 
-      -- 只處理非空行
+      -- Skip empty lines after cleaning
       if clean_line:match("%S") then
-        -- Debug 用的 hex 輸出
-        local hex = line:gsub(".", function(c)
-          return string.format("%02X ", string.byte(c))
-        end)
-        util.log(string.format("%d -- Raw hex: %s", index, hex), "TRACE")
-        util.log(string.format("Cleaned line: %s", clean_line), "TRACE")
+        -- Debug logging only when needed
+        if config.get().logger.level == "TRACE" then
+          local hex = line:gsub(".", function(c)
+            return string.format("%02X ", string.byte(c))
+          end)
+          util.log(string.format("%d -- Raw hex: %s", index, hex), "TRACE")
+          util.log(string.format("Cleaned line: %s", clean_line), "TRACE")
+        end
 
         util.log(clean_line, "DEBUG")
-        -- 解析清理後的行
+        -- Parse the cleaned line
         M.parse(clean_line)
       end
     end
+  end
 
+  -- Only update history if we have meaningful content
+  if has_meaningful_content then
+    -- Add to history
     table.insert(M.state.history, lines)
 
-    -- Maintain history size limit
-    while #M.state.history > M.state.max_history do
-      table.remove(M.state.history, 1)
+    -- More efficient history size management
+    if #M.state.history > M.state.max_history then
+      -- Remove oldest entries in one operation
+      local excess = #M.state.history - M.state.max_history
+      if excess > 0 then
+        table.move(M.state.history, excess + 1, #M.state.history, 1)
+        for i = #M.state.history - excess + 1, #M.state.history do
+          M.state.history[i] = nil
+        end
+      end
     end
 
-    -- 發出行變更事件
+    -- Emit event only once per batch of lines
     M.events:emit("lines_changed", lines)
   end
 end
