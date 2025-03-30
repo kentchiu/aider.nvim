@@ -71,7 +71,6 @@ end
 ---@return string The Aider command line configuration.
 local function build_aider_config()
   local aider_config = "--no-auto-commits --watch-files --no-auto-lint"
-  -- aider_config = aider_config .. " --read .cursorrules"
   aider_config = aider_config .. config.model
   -- aider_config = aider_config
   --   .. " aider --architect --model openrouter/deepseek/deepseek-r1 --editor-model gemini/gemini-2.0-flash --weak-model gemini/gemini-2.0-flash"
@@ -126,39 +125,14 @@ local function setup_autocommands()
     end,
     desc = "Enter to insert mode when terminal gains focus",
   })
-
-  -- vim.api.nvim_create_autocmd("InsertEnter", {
-  --   buffer = state.bufnr,
-  --   callback = function()
-  --     -- 直接設置游標，不使用 vim.schedule，以嘗試立即生效
-  --     -- 確保視窗和緩衝區仍然有效
-  --     if state.winid and vim.api.nvim_win_is_valid(state.winid) and state.bufnr and vim.api.nvim_buf_is_valid(state.bufnr) then
-  --       local last_line_num = vim.api.nvim_buf_line_count(state.bufnr)
-  --       -- 將游標設置到最後一行的末尾
-  --       -- 使用一個非常大的列號 (e.g., 9999) 來表示行尾
-  --       vim.api.nvim_win_set_cursor(state.winid, { last_line_num, 9999 })
-  --     end
-  --   end,
-  --   desc = "Move cursor to the end of the last line on entering insert mode",
-  -- })
 end
 
 ---Initializes the Aider terminal buffer and window.
 ---@return nil
 local function initialize_terminal()
-  -- local current_win_heigh = vim.api.nvim_win_get_height(0)
-  -- local current_win_width = vim.api.nvim_win_get_width(0)
-  --
-  -- local split = "below"
-  -- if current_win_width > 160 then
-  --   split = "right"
-  -- end
-
   local win_config = {
     split = "right",
     win = 0,
-    -- width = math.floor(vim.o.columns * 0.5), -- 設置合適的初始寬度
-    -- height = math.floor(vim.o.lines * 0.3),
   }
 
   state.bufnr = vim.api.nvim_create_buf(false, true)
