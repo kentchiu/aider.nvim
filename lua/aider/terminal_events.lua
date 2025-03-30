@@ -67,14 +67,14 @@ function M.handle_lines(buf, changedtick, first_line, last_line, last_line_in_ra
     byte_count
   )
 
-  util.log("lines args: " .. args_str, vim.log.levels.TRACE)
+  util.log("lines args: " .. args_str, "TRACE")
   
   -- Get the changed lines content
   local lines = vim.api.nvim_buf_get_lines(buf, first_line, last_line, false)
 
   -- Add to lines history
   if #lines > 0 then
-    util.log("aider lines: " .. vim.inspect(lines), vim.log.levels.TRACE)
+    util.log("aider lines: " .. vim.inspect(lines), "TRACE")
 
     for index, line in ipairs(lines) do
       -- 清理並解析每一行
@@ -86,10 +86,10 @@ function M.handle_lines(buf, changedtick, first_line, last_line, last_line_in_ra
         local hex = line:gsub(".", function(c)
           return string.format("%02X ", string.byte(c))
         end)
-        util.log(string.format("%d -- Raw hex: %s", index, hex), vim.log.levels.TRACE)
-        util.log(string.format("Cleaned line: %s", clean_line), vim.log.levels.TRACE)
+        util.log(string.format("%d -- Raw hex: %s", index, hex), "TRACE")
+        util.log(string.format("Cleaned line: %s", clean_line), "TRACE")
 
-        util.log(clean_line, vim.log.levels.DEBUG)
+        util.log(clean_line, "DEBUG")
         -- 解析清理後的行
         M.parse(clean_line)
       end
@@ -138,7 +138,7 @@ function M.parse(line)
 end
 
 function M.to_string()
-  vim.notify(vim.inspect(M.state), vim.log.levels.INFO)
+  vim.notify(vim.inspect(M.state))
 end
 
 function M.reset_state()

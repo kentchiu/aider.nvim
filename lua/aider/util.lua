@@ -1,8 +1,27 @@
 ---@class AiderUtil
 local M = {}
+local config = require("aider.config")
+
+-- Convert log level string to vim.log.levels value
+local function get_log_level_from_string(level_str)
+  local level_map = {
+    ["TRACE"] = vim.log.levels.TRACE,
+    ["DEBUG"] = vim.log.levels.DEBUG,
+    ["INFO"] = vim.log.levels.INFO,
+    ["WARN"] = vim.log.levels.WARN,
+    ["ERROR"] = vim.log.levels.ERROR,
+    ["OFF"] = vim.log.levels.OFF,
+  }
+
+  return level_map[level_str] or vim.log.levels.INFO
+end
+
+-- Get logger level from config, with fallback to INFO
+local cfg = config.get()
+local default_level_str = (cfg.logger and cfg.logger.level) or "INFO"
 
 --- Default log level
-M.default_level = vim.log.levels.INFO
+M.default_level = get_log_level_from_string(default_level_str)
 
 --- Log level mapping
 local LEVELS = {
@@ -16,20 +35,22 @@ local LEVELS = {
 
 --- Log a message
 ---@param message string|table The message to log
----@param level? integer vim.log.levels (default: INFO)
+---@param level? string Log level: TRACE | DEBUG | INFO | WARN | ERROR | OFF, default INFO
 function M.log(message, level)
-  level = level or vim.log.levels.INFO
+  -- Convert string level to integer
+  level = level or "INFO"
+  local level_int = get_log_level_from_string(level)
 
-  if level == vim.log.levels.OFF then
+  if level_int == vim.log.levels.OFF then
     return
   end
 
   -- Only log if level is >= default_level
-  if level < M.default_level then
+  if level_int < M.default_level then
     return
   end
 
-  local level_str = LEVELS[level] or "INFO"
+  local level_str = level
 
   -- Get caller info
   local info = debug.getinfo(2, "Sl")

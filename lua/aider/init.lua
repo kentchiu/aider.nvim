@@ -1,6 +1,18 @@
 ---@class AiderInit
 local M = {}
 
+function M.setup(opts)
+  -- require("aider.config").setup(opts)
+  -- local util = require("aider.util")
+  -- util.log("aider start")
+  -- require("aider.file_watcher")
+end
+
+function M.get_config()
+  local config = require("aider.config")
+  return config.options
+end
+
 function M.toggle()
   require("aider.terminal").toggle()
 end
@@ -25,6 +37,10 @@ function M.drop_file()
   require("aider.actions").drop_file()
 end
 
+function M.drop_files()
+  require("aider.actions").drop_files()
+end
+
 function M.yes()
   require("aider.terminal").send("Yes", true)
 end
@@ -47,7 +63,4 @@ end
 
 vim.print = _G.dd
 
-local util = require("aider.util")
-util.log("aider/init.lua")
-require("aider.file_watcher")
 return M

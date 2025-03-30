@@ -51,7 +51,7 @@ function ReadonlyHandler:handle(matches, state)
   for path in matches[1]:gmatch("[^,]+") do
     path = path:match("^%s*(.-)%s*$") -- Trim whitespace
     table.insert(state.readonly_files, path)
-    util.log("add readonly file: " .. path, vim.log.levels.INFO)
+    util.log("add readonly file: " .. path)
   end
   
   self:postprocess(matches, state)
@@ -73,7 +73,7 @@ function EditableHandler:handle(matches, state)
   state.editable_files = {}
   for path in matches[1]:gmatch("%S+") do
     table.insert(state.editable_files, path)
-    util.log("add editable file: " .. path, vim.log.levels.INFO)
+    util.log("add editable file: " .. path)
   end
   
   self:postprocess(matches, state)
@@ -108,7 +108,7 @@ end
 function ReadyHandler:handle(matches, state)
   self:preprocess(matches, state)
   state.ready = true
-  util.log("terminal ready", vim.log.levels.INFO)
+  util.log("terminal ready")
   self:postprocess(matches, state)
 end
 
@@ -125,7 +125,7 @@ end
 function FeedbackHandler:handle(matches, state)
   self:preprocess(matches, state)
   state.wait_for_feedback = matches[1]
-  util.log("Wait For Feedback" .. matches[1], vim.log.levels.INFO)
+  util.log("Wait For Feedback" .. matches[1])
   self:postprocess(matches, state)
 end
 

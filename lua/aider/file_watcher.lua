@@ -19,7 +19,7 @@ local function watch_file()
   -- Skip non-normal buffers
   local bufnr = vim.fn.bufnr(fullpath)
   if bufnr == -1 or vim.bo[bufnr].buftype ~= "" then
-    util.log("skip non-normal buffer: " .. fullpath, vim.log.levels.DEBUG)
+    util.log("skip non-normal buffer: " .. fullpath, "DEBUG")
     return
   end
 
@@ -48,7 +48,7 @@ local function watch_file()
 
     local current_stat = vim.loop.fs_stat(fullpath)
     if not current_stat then
-      util.log("Failed to get file stat for: " .. fullpath)
+      util.log("Failed to get file stat for: " .. fullpath, "ERROR")
       return
     end
 
@@ -68,7 +68,7 @@ local function watch_file()
       local current_time = vim.loop.now()
 
       if processing_files[fullpath] and (current_time - processing_files[fullpath]) < DEBOUNCE_MS then
-        util.log("Skipping due to debounce for: " .. relate_path)
+        util.log("Skipping due to debounce for: " .. relate_path, "DEBUG")
         return
       end
 
@@ -81,7 +81,7 @@ local function watch_file()
         vim.cmd(":e!")
         vim.notify(relate_path .. " changed from external", vim.log.levels.INFO)
       else
-        util.log("Buffer not found for: " .. fullpath)
+        util.log("Buffer not found for: " .. fullpath, "WARN")
       end
     end)
   end)

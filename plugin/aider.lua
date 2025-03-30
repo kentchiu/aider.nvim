@@ -33,6 +33,13 @@ end, {
   desc = "Drop Current File from Aider",
 })
 
+vim.api.nvim_create_user_command("AiderDropFiles", function(opts)
+  require("aider").drop_files()
+end, {
+  nargs = "*",
+  desc = "Drop Files from Aider",
+})
+
 vim.api.nvim_create_user_command("AiderTest", function(opts) end, {
   nargs = "*",
   desc = "Test Terminal Buffer",
@@ -53,9 +60,10 @@ end, {
 })
 
 -- vim.keymap.set("v", "<leader>aa", "<cmd>AiderTest<cr>", { desc = "Aider Test" })
-vim.keymap.set({ "n", "v", "i" }, "<M-a>", "<cmd>Aider<cr>", { desc = "Toggle Aider" })
-vim.keymap.set({ "n", "v", "i" }, "<M-y>", "<cmd>AiderYes<cr>", { desc = "Aider yes" })
-vim.keymap.set({ "n", "v", "i" }, "<M-n>", "<cmd>AiderNo<cr>", { desc = "Aider no" })
+vim.keymap.set({ "n", "v", "i", "t" }, "<M-a>", "<cmd>Aider<cr>", { desc = "Toggle Aider" })
+vim.keymap.set({ "n", "v", "i", "t" }, "<M-y>", "<cmd>AiderYes<cr>", { desc = "Answer Yes" })
+vim.keymap.set({ "n", "v", "i", "t" }, "<M-n>", "<cmd>AiderNo<cr>", { desc = "Answer No" })
+vim.keymap.set({ "n", "v", "i", "t" }, "<M-l>", "<cmd>AiderDropFiles<cr>", { desc = "Drop Files" })
 vim.keymap.set("n", "<leader>aa", "<cmd>Aider<cr>", { desc = "Toggle Aider" })
 vim.keymap.set("n", "<leader>af", "<cmd>AiderFix<cr>", { desc = "Fix Diagnostic" })
 vim.keymap.set("v", "<leader>af", "<cmd>AiderFix<cr>", { desc = "Fix Diagnostic" })
@@ -63,18 +71,3 @@ vim.keymap.set("n", "<leader>ad", "<cmd>AiderDialog<cr>", { desc = "Open Dialog"
 vim.keymap.set("v", "<leader>ad", "<cmd>AiderDialog<cr>", { desc = "Open Dialog" })
 vim.keymap.set("n", "<leader>a+", "<cmd>AiderAddFile<cr>", { desc = "Add Current File" })
 vim.keymap.set("n", "<leader>a-", "<cmd>AiderDropFile<cr>", { desc = "Drop Current File" })
-
--- require("aider").watch_file()
---
-
-local util = require("aider.util")
--- only enable logger when aider is found in path
-if vim.fn.glob(".aider.*") ~= "" then
-  util.default_level = vim.log.levels.DEBUG
-else
-  util.default_level = vim.log.levels.OFF
-end
--- turn off log
-util.default_level = vim.log.levels.OFF
-util.log("adider.nvim start")
-require("aider")

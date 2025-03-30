@@ -71,11 +71,13 @@ end
 ---@return string The Aider command line configuration.
 local function build_aider_config()
   local aider_config = "--no-auto-commits --watch-files --no-auto-lint"
-  aider_config = aider_config .. " --read .cursorrules"
+  -- aider_config = aider_config .. " --read .cursorrules"
   aider_config = aider_config .. config.model
   -- aider_config = aider_config
   --   .. " aider --architect --model openrouter/deepseek/deepseek-r1 --editor-model gemini/gemini-2.0-flash --weak-model gemini/gemini-2.0-flash"
   -- aider_config = aider_config .. " --model " .. config.default_model
+  -- aider.nvim terminal events only work when pretty is true
+  aider_config = aider_config .. " --pretty"
   aider_config = aider_config .. " --no-show-release-notes"
   aider_config = aider_config .. " --no-check-update"
   aider_config = aider_config .. " --chat-language " .. config.default_language
@@ -184,8 +186,6 @@ local function start_aider()
   -- state.job_id = vim.fn.jobstart("aider " .. aider_config, { term = true })
   -- termopen work in macOS and windows
   state.job_id = vim.fn.termopen("aider " .. aider_config)
-  
-
 end
 
 ---Starts the Aider terminal if it is not already running.
