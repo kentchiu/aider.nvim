@@ -1,9 +1,9 @@
 local M = {}
 
-local util = require("aider.util")
-local State = require("aider.state")
 local EventEmitter = require("aider.events")
+local State = require("aider.state")
 local patterns = require("aider.patterns")
+local util = require("aider.util")
 
 ---@param str string The raw terminal line
 ---@return string cleaned_str The cleaned line
@@ -68,7 +68,7 @@ function M.handle_lines(buf, changedtick, first_line, last_line, last_line_in_ra
   )
 
   util.log("lines args: " .. args_str, "TRACE")
-  
+
   -- Get the changed lines content
   local lines = vim.api.nvim_buf_get_lines(buf, first_line, last_line, false)
 
@@ -101,7 +101,7 @@ function M.handle_lines(buf, changedtick, first_line, last_line, last_line_in_ra
     while #M.state.history > M.state.max_history do
       table.remove(M.state.history, 1)
     end
-    
+
     -- 發出行變更事件
     M.events:emit("lines_changed", lines)
   end
@@ -121,7 +121,9 @@ function M.parse(line)
   for _, handler in pairs(M.PATTERNS) do
     table.insert(handlers, handler)
   end
-  table.sort(handlers, function(a, b) return a.priority < b.priority end)
+  table.sort(handlers, function(a, b)
+    return a.priority < b.priority
+  end)
 
   -- 依次嘗試每個處理器
   for _, handler in ipairs(handlers) do

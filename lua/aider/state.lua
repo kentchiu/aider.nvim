@@ -47,4 +47,4 @@ function State:reset()
   self.wait_for_feedback = nil
 end
 
-return State 
+return State

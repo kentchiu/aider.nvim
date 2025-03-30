@@ -2,10 +2,10 @@
 local M = {}
 
 function M.setup(opts)
-  -- require("aider.config").setup(opts)
-  -- local util = require("aider.util")
-  -- util.log("aider start")
-  -- require("aider.file_watcher")
+  require("aider.config").setup(opts)
+  local util = require("aider.util")
+  util.log("aider start")
+  require("aider.file_watcher")
 end
 
 function M.get_config()

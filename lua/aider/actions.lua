@@ -112,9 +112,7 @@ end
 function M.drop_files()
   local editable_files = events.state.editable_files
   vim.notify(vim.inspect(editable_files), vim.log.levels.INFO)
-  vim.ui.select(editable_files, { prompt = "Select files to drop" }, function(choice)
-    print("🟥[164]: actions.lua:115: choice=" .. vim.inspect(choice))
-  end)
+  vim.ui.select(editable_files, { prompt = "Select files to drop" }, function(choice) end)
 end
 
 return M
