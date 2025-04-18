@@ -20,7 +20,7 @@ local config = {
   -- openrouter/deepseek/deepseek-chat
   -- openrouter/deepseek/deepseek-r1
   -- 73/90?, $ ?
-  -- model = " --model gemini-2.5-pro",
+  model = " --model gemini-2.5-pro",
   -- 64/100, $13
   -- model = " --architect --model r1 --editor-model sonnet",
   -- 60/93, $18
@@ -34,7 +34,7 @@ local config = {
   -- model = " --architect --model gemini/gemini-2.0-flash-thinking-exp --editor-model gemini/gemini-2.0-pro-exp-02-05 --weak-model gemini/gemini-2.0-pro-exp-02-05",
   -- model = " --architect --model openrouter/deepseek/deepseek-r1 --editor-model gemini/gemini-2.0-flash --weak-model gemini/gemini-2.0-flash",
   -- free model
-  model = " --model gemini/gemini-2.0-flash",
+  -- model = " --model gemini/gemini-2.0-flash",
   default_language = "Traditional-Chinese",
   extra_config = "", -- 用户可以添加额外的 Aider 配置
 }
@@ -93,15 +93,15 @@ local function attach_buffer()
     on_lines = function(_, buf, changedtick, first_line, last_line, last_line_in_range, byte_count)
       terminal_events.handle_lines(buf, changedtick, first_line, last_line, last_line_in_range, byte_count)
 
-      -- 自动移动光标到最后一行
-      vim.schedule(function()
-        if state.winid and vim.api.nvim_win_is_valid(state.winid) then
-          vim.api.nvim_win_call(state.winid, function()
-            local last_line_num = vim.api.nvim_buf_line_count(state.bufnr)
-            vim.api.nvim_win_set_cursor(state.winid, { last_line_num, 0 })
-          end)
-        end
-      end)
+      -- -- 自动移动光标到最后一行
+      -- vim.schedule(function()
+      --   if state.winid and vim.api.nvim_win_is_valid(state.winid) then
+      --     vim.api.nvim_win_call(state.winid, function()
+      --       local last_line_num = vim.api.nvim_buf_line_count(state.bufnr)
+      --       vim.api.nvim_win_set_cursor(state.winid, { last_line_num, 0 })
+      --     end)
+      --   end
+      -- end)
     end,
   })
 end

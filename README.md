@@ -4,9 +4,8 @@ An AI-assisted coding plugin for Neovim, integrating the Aider CLI tool.
 
 ## TODO
 
-- [ ] check file exist before add file
-- [ ] show file list
-- [ ] drop file from file list
+- [ ] save current state (model, file list presistant)
+- [ ] add file from snacks file list
 - [x] auto start (with deffer) aider if necessary when send to aider.
 - [ ] tree-sitter on response
 - [x] aider run in background when windows is close.
@@ -22,7 +21,7 @@ An AI-assisted coding plugin for Neovim, integrating the Aider CLI tool.
 - [ ] forward aider confirmation to neovim ui
 - [ ] show diff
 - [ ] watching only aider is enabled or setup
-- [ ] sync buffers list to watch handler (active only)
+- [x] sync buffers list to watch handler (active only)
 - [x] send current file
 - [x] watching file change
 - [x] dialog for prompt
@@ -42,13 +41,13 @@ sequenceDiagram
 
     Terminal->>Events: Buffer Content Change
     Events->>Events: clean_terminal_line()
-    
+
     rect rgb(200, 200, 255)
         Note over Events: Process Each Line
         Events->>Events: Parse Non-Empty Lines
         Events->>State: Add to History
         Events->>EventEmitter: emit("lines_changed")
-        
+
         Note over Events,Patterns: Pattern Matching Process
         Events->>Events: Sort Handlers by Priority
         loop Each Handler

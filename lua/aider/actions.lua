@@ -1,12 +1,12 @@
 local M = {}
 
 local events = require("aider.terminal_events")
+local terminal = require("aider.terminal") -- 將 terminal 載入到局部變數
 local util = require("aider.util")
 
 ---Fix diagnostics at the current cursor position
 ---@return nil
 function M.fix()
-  local terminal = require("aider.terminal")
   local lines, line_start, line_end = util.get_visual_selection()
   local filename = vim.fn.expand("%")
   local diagnostics = {}
@@ -30,7 +30,7 @@ function M.fix()
   end
 
   if #diagnostics > 0 then
-    pcall(terminal.send, "/add " .. filename, true)
+    -- pcall(terminal.send, "/add " .. filename, true)
 
     local content = ""
     for _, diagnostic in ipairs(diagnostics) do
@@ -53,7 +53,7 @@ end
 ---@return nil
 function M.send(content)
   if content then
-    require("aider.terminal").send(content)
+    terminal.send(content) -- 使用局部變數 terminal
   end
 end
 
@@ -79,7 +79,6 @@ end
 --- Send current file to aider
 function M.add_file()
   local filename = vim.fn.expand("%")
-  local terminal = require("aider.terminal")
   local editable_files = events.state.editable_files
 
   -- 將絕對路徑轉換為相對路徑
@@ -102,17 +101,31 @@ function M.add_file()
   terminal.send("/add " .. filename, true)
 end
 
+function M.add_files()
+  local snacks = require("snacks")
+  snacks.picker.pick({
+    source = "files",
+    title = "Test files picker",
+    confirm = function(picker, item, action)
+      local selections = picker:selected()
+      if #selections > 0 then
+        local files = ""
+        for _, selection in ipairs(selections) do
+          files = files .. " " .. selection.file
+        end
+        terminal.send("/add " .. files, true)
+      elseif item then
+        terminal.send("/add " .. item.file, true)
+      end
+      picker:close()
+    end,
+  })
+end
+
 --- Drop current file from aider
 function M.drop_file()
   local filename = vim.fn.expand("%")
-  local terminal = require("aider.terminal")
-  terminal.send("/drop " .. filename, true)
-end
-
-function M.drop_files()
-  local editable_files = events.state.editable_files
-  vim.notify(vim.inspect(editable_files), vim.log.levels.INFO)
-  vim.ui.select(editable_files, { prompt = "Select files to drop" }, function(choice) end)
+  terminal.send("/drop " .. filename, true) -- 使用局部變數 terminal
 end
 
 return M
