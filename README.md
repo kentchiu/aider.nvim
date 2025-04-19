@@ -5,7 +5,8 @@ An AI-assisted coding plugin for Neovim, integrating the Aider CLI tool.
 ## TODO
 
 - [ ] save current state (model, file list presistant)
-- [ ] add file from snacks file list
+- [ ] add current as readonly
+- [x] add file from snacks file list
 - [x] auto start (with deffer) aider if necessary when send to aider.
 - [ ] tree-sitter on response
 - [x] aider run in background when windows is close.

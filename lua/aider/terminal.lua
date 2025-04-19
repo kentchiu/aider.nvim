@@ -3,8 +3,6 @@ local M = {}
 local terminal_events = require("aider.terminal_events")
 local util = require("aider.util")
 
-util.log("aider/init.lua")
-
 ---@class AiderTerminalState
 local state = {
   bufnr = nil,

@@ -4,10 +4,10 @@ local M = {}
 local actions = require("aider.actions")
 local config = require("aider.config")
 local terminal = require("aider.terminal")
-local util = require("aider.util")
 
 function M.setup(opts)
   config.setup(opts)
+  local util = require("aider.util")
   util.log("aider start")
   require("aider.file_watcher")
 end
