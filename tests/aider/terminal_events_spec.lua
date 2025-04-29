@@ -6,54 +6,6 @@ describe("terminal_events PATTERNS", function()
     terminal_events.reset_state()
   end)
 
-  describe("ReadonlyHandler", function()
-    local handler = patterns.ReadonlyHandler:new()
-
-    it("should parse single readonly file path", function()
-      local line = "Readonly: path/to/file.txt"
-      local matches = { line:match(handler.pattern) }
-      local state = {}
-      handler:handle(matches, state)
-      assert.same({ "path/to/file.txt" }, state.readonly_files)
-    end)
-
-    it("should parse multiple comma-separated paths", function()
-      local line = "Readonly: file1.txt,file2.txt,file3.txt"
-      local matches = { line:match(handler.pattern) }
-      local state = {}
-      handler:handle(matches, state)
-      assert.same({ "file1.txt", "file2.txt", "file3.txt" }, state.readonly_files)
-    end)
-
-    it("should handle empty readonly declaration", function()
-      local line = "Readonly:"
-      local matches = { line:match(handler.pattern) }
-      local state = {}
-      handler:handle(matches, state)
-      assert.same({}, state.readonly_files)
-    end)
-  end)
-
-  describe("EditableHandler", function()
-    local handler = patterns.EditableHandler:new()
-
-    it("should parse single editable file path", function()
-      local line = "Editable: path/to/file.txt"
-      local matches = { line:match(handler.pattern) }
-      local state = {}
-      handler:handle(matches, state)
-      assert.same({ "path/to/file.txt" }, state.editable_files)
-    end)
-
-    it("should parse multiple paths", function()
-      local line = "Editable: file1.txt file2.txt file3.txt"
-      local matches = { line:match(handler.pattern) }
-      local state = {}
-      handler:handle(matches, state)
-      assert.same({ "file1.txt", "file2.txt", "file3.txt" }, state.editable_files)
-    end)
-  end)
-
   describe("FeedbackHandler", function()
     local handler = patterns.FeedbackHandler:new()
 

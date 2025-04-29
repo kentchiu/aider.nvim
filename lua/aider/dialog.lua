@@ -1,7 +1,6 @@
 local M = {}
 
 local terminal = require("aider.terminal")
-local util = require("aider.util")
 
 local state = {
   bufrn = nil,

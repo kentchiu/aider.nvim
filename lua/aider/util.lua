@@ -132,9 +132,14 @@ function M.get_visual_selection()
       -- 確保 end_col 不超過實際行長度 (處理多位元組字元)
       local line_content = lines[1]
       local byte_end_col = vim.fn.byteidx(line_content, end_col) -- 獲取結束字元的位元組索引
-      if byte_end_col == -1 then byte_end_col = #line_content end -- 如果超出範圍，取到結尾
+      if byte_end_col == -1 then
+        byte_end_col = #line_content
+      end -- 如果超出範圍，取到結尾
       lines[1] = string.sub(line_content, start_col, byte_end_col)
-      M.log(string.format("單行截取: start_col=%d, byte_end_col=%d, content='%s'", start_col, byte_end_col, lines[1]), "DEBUG")
+      M.log(
+        string.format("單行截取: start_col=%d, byte_end_col=%d, content='%s'", start_col, byte_end_col, lines[1]),
+        "DEBUG"
+      )
     else
       -- 多行選擇
       local first_line_content = lines[1]
@@ -146,9 +151,14 @@ function M.get_visual_selection()
 
       -- 截取最後一行到 end_col 的部分
       local last_byte_end_col = vim.fn.byteidx(last_line_content, end_col) -- 獲取結束字元的位元組索引
-      if last_byte_end_col == -1 then last_byte_end_col = #last_line_content end -- 如果超出範圍，取到結尾
+      if last_byte_end_col == -1 then
+        last_byte_end_col = #last_line_content
+      end -- 如果超出範圍，取到結尾
       lines[#lines] = string.sub(last_line_content, 1, last_byte_end_col)
-      M.log(string.format("多行截取 - 最後一行: byte_end_col=%d, content='%s'", last_byte_end_col, lines[#lines]), "DEBUG")
+      M.log(
+        string.format("多行截取 - 最後一行: byte_end_col=%d, content='%s'", last_byte_end_col, lines[#lines]),
+        "DEBUG"
+      )
     end
   end
 
@@ -158,7 +168,6 @@ function M.get_visual_selection()
   -- 返回選中文本和原始的行列資訊 (1-based)
   return selected_text, start_pos[2], end_pos[2], start_pos[3], end_pos[3]
 end
-
 
 --- 將內容包裝在程式碼塊模板中
 ---@param input string 要包裝的內容
@@ -178,9 +187,9 @@ function M.template_code(input, filetype, start_line, end_line, path)
     -- 確保路徑不為空
     local abs_path = vim.fn.fnamemodify(path, ":p") -- 獲取絕對路徑
     if abs_path and #abs_path > 0 then
-       -- 根據作業系統調整路徑表示 (可選，通常 aider 能處理)
-       -- local formatted_path = vim.fn.substitute(abs_path, '\\', '/', 'g') -- 將反斜線替換為正斜線
-      tpl = tpl .. "file:" .. abs_path .. ":" .. start_line .. "-" .. end_line .. "\n"
+      -- 根據作業系統調整路徑表示 (可選，通常 aider 能處理)
+      -- local formatted_path = vim.fn.substitute(abs_path, '\\', '/', 'g') -- 將反斜線替換為正斜線
+      tpl = tpl .. "file:" .. abs_path .. ":" .. start_line .. "-" .. end_line .. "\n\n\n"
     end
   end
 

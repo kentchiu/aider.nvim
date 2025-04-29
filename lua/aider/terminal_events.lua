@@ -26,8 +26,6 @@ M.state = State:new()
 M.events = EventEmitter:new()
 
 M.PATTERNS = {
-  editable = patterns.EditableHandler:new(),
-  readonly = patterns.ReadonlyHandler:new(),
   prompt = patterns.PromptHandler:new(),
   ready = patterns.ReadyHandler:new(),
   feedback = patterns.FeedbackHandler:new(),

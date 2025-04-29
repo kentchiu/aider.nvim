@@ -12,7 +12,7 @@ function PatternHandler:new(name, pattern, priority)
     name = name,
     pattern = pattern,
     enabled = true,
-    priority = priority or 0
+    priority = priority or 0,
   }
   setmetatable(instance, { __index = PatternHandler })
   return instance
@@ -30,54 +30,7 @@ function PatternHandler:postprocess(matches, state)
   -- 在處理後執行的邏輯
 end
 
-function PatternHandler:handle(matches, state)
-  error("handle method must be implemented by subclass")
-end
-
----@class ReadonlyHandler : PatternHandler
-local ReadonlyHandler = {}
-setmetatable(ReadonlyHandler, { __index = PatternHandler })
-
-function ReadonlyHandler:new()
-  local instance = PatternHandler:new("readonly", "^Readonly:%s*(.-)%s*$", 10)
-  setmetatable(instance, { __index = ReadonlyHandler })
-  return instance
-end
-
-function ReadonlyHandler:handle(matches, state)
-  self:preprocess(matches, state)
-  
-  state.readonly_files = {}
-  for path in matches[1]:gmatch("[^,]+") do
-    path = path:match("^%s*(.-)%s*$") -- Trim whitespace
-    table.insert(state.readonly_files, path)
-    util.log("add readonly file: " .. path)
-  end
-  
-  self:postprocess(matches, state)
-end
-
----@class EditableHandler : PatternHandler
-local EditableHandler = {}
-setmetatable(EditableHandler, { __index = PatternHandler })
-
-function EditableHandler:new()
-  local instance = PatternHandler:new("editable", "^Editable:%s*(.-)%s*$", 20)
-  setmetatable(instance, { __index = EditableHandler })
-  return instance
-end
-
-function EditableHandler:handle(matches, state)
-  self:preprocess(matches, state)
-  
-  state.editable_files = {}
-  for path in matches[1]:gmatch("%S+") do
-    table.insert(state.editable_files, path)
-    util.log("add editable file: " .. path)
-  end
-  
-  self:postprocess(matches, state)
-end
+function PatternHandler:handle(matches, state) end
 
 ---@class PromptHandler : PatternHandler
 local PromptHandler = {}
@@ -107,8 +60,10 @@ end
 
 function ReadyHandler:handle(matches, state)
   self:preprocess(matches, state)
-  state.ready = true
-  util.log("terminal ready")
+  -- 實作 ReadyHandler 的具體邏輯
+  -- 觸發狀態變更，類似 PromptHandler
+  util.log("ReadyHandler triggered with mode: " .. matches[1], "DEBUG")
+  state:trigger_mode_change(matches[1])
   self:postprocess(matches, state)
 end
 
@@ -130,8 +85,6 @@ function FeedbackHandler:handle(matches, state)
 end
 
 return {
-  ReadonlyHandler = ReadonlyHandler,
-  EditableHandler = EditableHandler,
   PromptHandler = PromptHandler,
   ReadyHandler = ReadyHandler,
   FeedbackHandler = FeedbackHandler,

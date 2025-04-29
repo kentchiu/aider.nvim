@@ -8,7 +8,6 @@ local util = require("aider.util")
 ---@return nil
 function M.fix()
   local lines, line_start, line_end = util.get_visual_selection()
-  local filename = vim.fn.expand("%")
   local diagnostics = {}
   local code
 
@@ -23,27 +22,28 @@ function M.fix()
     code = lines
   else
     -- No visual selection, get diagnostics for the current line
-    line_start = vim.api.nvim_win_get_cursor(0)[1] - 1
+    line_start = vim.api.nvim_win_get_cursor(0)[1] - 1 -- 0-based line number
     line_end = line_start + 1
-    diagnostics = vim.diagnostic.get(0, { lnum = line_start })
+    diagnostics = vim.diagnostic.get(0, { lnum = line_start, end_lnum = line_end }) -- Use 0-based line number for diagnostics
     code = vim.api.nvim_buf_get_lines(0, line_start, line_end, false)[1]
   end
 
   if #diagnostics > 0 then
-    -- pcall(terminal.send, "/add " .. filename, true)
-
     local content = ""
+    local filename = vim.fn.expand("%:.")
+    content = content .. util.template_code(code, vim.bo.filetype, line_start, line_end, filename) .. "\n\n"
     for _, diagnostic in ipairs(diagnostics) do
-      content = content .. util.template_code(code, vim.bo.filetype, line_start, line_end, filename)
       content = content
         .. "For the code present, we get this error: \n\n"
         .. util.template_code(diagnostic.message)
         .. "\n"
-      content = content .. "How can I resolve this? If you propose a fix, please make it concise.\n"
-      content = content .. "\n\n"
-      require("aider.dialog").toggle({ content = content })
-      vim.api.nvim_command("stopinsert")
+      break -- only show 1 diagnostic
     end
+    content = content .. "---\n"
+    content = content .. "How can I resolve this? If you propose a fix, please make it concise.\n"
+    content = content .. "\n\n"
+    require("aider.dialog").toggle({ content = content })
+    vim.api.nvim_command("stopinsert")
   else
     vim.notify("No diagnostics for current selection/line")
   end
@@ -79,25 +79,6 @@ end
 --- Send current file to aider
 function M.add_file()
   local filename = vim.fn.expand("%")
-  local editable_files = events.state.editable_files
-
-  -- 將絕對路徑轉換為相對路徑
-  local relative_path = vim.fn.fnamemodify(filename, ":.")
-
-  -- 檢查檔案是否已存在於 editable_files
-  local exists = false
-  for _, file in ipairs(editable_files) do
-    if file == relative_path then
-      exists = true
-      break
-    end
-  end
-
-  if exists then
-    vim.notify("File " .. relative_path .. " is already being edited by aider", vim.log.levels.WARN)
-    return
-  end
-
   terminal.send("/add " .. filename, true)
 end
 
