@@ -205,6 +205,7 @@ function M.template_code(input, filetype, start_line, end_line, path)
     tpl = tpl .. "\n"
   end
   tpl = tpl .. "```\n"
+  tpl = tpl .. "---\n\n"
   return tpl
 end
 
