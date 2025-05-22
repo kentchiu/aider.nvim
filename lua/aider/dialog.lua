@@ -1,6 +1,6 @@
 local M = {}
-
-local terminal = require("aider.terminal")
+local tmux = require("aider.tmux")
+-- local terminal = require("aider.terminal")
 
 local state = {
   bufrn = nil,
@@ -27,7 +27,7 @@ function M.toggle(opts)
 end
 
 function M.open(opts)
-  terminal.start()
+  -- terminal.start()
   opts = opts or {}
 
   if opts.content then
@@ -65,18 +65,15 @@ function M.open(opts)
     col = col,
     style = "minimal",
     border = "rounded",
-    title = " Input Text ",
+    title = " Alt-s to Send ",
     title_pos = "center",
   }
 
-  -- Create the floating window
   state.winid = vim.api.nvim_open_win(state.bufrn, true, win_opts)
 
   vim.wo[state.winid].wrap = true
   vim.wo[state.winid].number = false
   vim.wo[state.winid].relativenumber = false
-  -- vim.wo[state.win].conceallevel = 0
-  -- Set up keymaps for the dialog
   local keymap_opts = { buffer = state.bufrn, silent = true }
 
   -- Close dialog
@@ -87,8 +84,7 @@ function M.open(opts)
   -- Send content to terminal and close
   vim.keymap.set({ "n", "i" }, "<M-s>", function()
     local data = table.concat(vim.api.nvim_buf_get_lines(state.bufrn, 0, -1, false), "\n")
-    local terminal = require("aider.terminal")
-    terminal.send(data, true)
+    tmux.send(data)
     vim.api.nvim_win_close(state.winid, true)
   end, keymap_opts)
 

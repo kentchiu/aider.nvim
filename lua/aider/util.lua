@@ -1,6 +1,6 @@
 ---@class AiderUtil
 local M = {}
-local config -- 延遲 require
+local config = require("aider.config")
 
 -- 將日誌級別字串轉換為 vim.log.levels 值
 local function get_log_level_from_string(level_str)
@@ -30,31 +30,21 @@ local LEVELS = {
 ---@param message string|table 要記錄的訊息
 ---@param level? string 日誌級別: TRACE | DEBUG | INFO | WARN | ERROR | OFF, 預設 INFO
 function M.log(message, level)
-  -- 延遲 require config 模組
-  if not config then
-    config = require("aider.config")
-  end
-
-  -- 獲取當前的設定
+  -- 獲取配置的日誌級別
   local current_config = config.get()
-  local configured_level_str = (current_config.logger and current_config.logger.level) or "INFO"
-  local configured_level_int = get_log_level_from_string(configured_level_str)
-
-  -- 如果設定的日誌級別為 OFF，則直接返回
-  if configured_level_int == vim.log.levels.OFF then
-    return
-  end
+  local level_from_config = (current_config and current_config.logger and current_config.logger.level) or "INFO"
+  local level = get_log_level_from_string(level_from_config)
 
   -- 獲取此訊息的級別
   local message_level_str = level or "INFO"
   local message_level_int = get_log_level_from_string(message_level_str)
 
-  -- 只有當訊息級別 >= 設定的級別時才記錄
-  if message_level_int < configured_level_int then
+  -- 僅當訊息級別大於或等於配置級別時才記錄
+  if message_level_int < level then
     return
   end
 
-  -- 獲取調用者資訊
+  -- 獲取 debug info
   local info = debug.getinfo(2, "Sl")
   if not info then
     -- 如果無法獲取調用者資訊，提供一個預設值

@@ -1,10 +1,27 @@
+---@class AiderConfig.Logger
+---@field level string # 日誌級別 (例如 "INFO", "WARN", "ERROR", "OFF").
+
 ---@class AiderConfig
----@field logger table
+---@field logger AiderConfig.Logger # 日誌記錄器配置.
+---@field models string[] # 常用模型列表.
 local M = {
+  --- 預設配置值。
+  --- 如果未被用戶選項或專案特定配置覆蓋，則使用這些值。
   ---@type AiderConfig
   defaults = {
     logger = {
       level = "INFO", -- 預設日誌級別
+    },
+    -- 常用模型
+    models = {
+      "openrouter/google/gemini-2.0-flash-001",
+      "openrouter/google/gemini-2.0-flash-exp:free",
+      "openrouter/google/gemini-2.5-pro-exp-03-25",
+      "openrouter/google/gemini-2.5-pro-preview-03-25",
+      "vertex_ai-language-models/openrouter/google/gemini-2.5-pro-preview-03-25",
+      "openrouter/google/gemini-2.5-pro-exp-03-25",
+      "gemini/gemini-2.5-pro-preview-05-06",
+      "gemini/gemini-2.5-flash-preview-05-20",
     },
   },
 

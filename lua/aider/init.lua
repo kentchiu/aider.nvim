@@ -2,22 +2,19 @@
 local M = {}
 
 local actions = require("aider.actions")
-local config = require("aider.config")
-local terminal = require("aider.terminal")
+local tmux = require("aider.tmux")
 
 function M.setup(opts)
-  config.setup(opts)
   local util = require("aider.util")
+  local config = require("aider.config")
+  config.setup(opts)
+
+  local current_config = config.get()
+  if current_config and current_config.logger and current_config.logger.level ~= "OFF" then
+    vim.notify("Aider logger level: " .. current_config.logger.level, vim.log.levels.INFO)
+  end
   util.log("aider start")
   require("aider.file_watcher")
-end
-
-function M.get_config()
-  return config.options
-end
-
-function M.toggle()
-  terminal.toggle()
 end
 
 function M.send(ask)
@@ -44,12 +41,16 @@ function M.drop_file()
   actions.drop_file()
 end
 
+function M.readonly()
+  actions.readonly()
+end
+
 function M.yes()
-  terminal.send("Yes", true)
+  tmux.send("Yes")
 end
 
 function M.no()
-  terminal.send("No", true)
+  tmux.send("No")
 end
 
 _G.dd = function(...)

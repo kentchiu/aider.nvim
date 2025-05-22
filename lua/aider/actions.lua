@@ -1,7 +1,6 @@
 local M = {}
 
-local events = require("aider.terminal_events")
-local terminal = require("aider.terminal") -- 將 terminal 載入到局部變數
+local tmux = require("aider.tmux")
 local util = require("aider.util")
 
 ---Fix diagnostics at the current cursor position
@@ -53,7 +52,7 @@ end
 ---@return nil
 function M.send(content)
   if content then
-    terminal.send(content) -- 使用局部變數 terminal
+    tmux.send(content)
   end
 end
 
@@ -79,7 +78,7 @@ end
 --- Send current file to aider
 function M.add_file()
   local filename = vim.fn.expand("%")
-  terminal.send("/add " .. filename, true)
+  tmux.send("/add " .. filename)
 end
 
 function M.add_files()
@@ -94,19 +93,23 @@ function M.add_files()
         for _, selection in ipairs(selections) do
           files = files .. " " .. selection.file
         end
-        terminal.send("/add " .. files, true)
+        tmux.send("/add " .. files)
       elseif item then
-        terminal.send("/add " .. item.file, true)
+        tmux.send("/add " .. item.file)
       end
       picker:close()
     end,
   })
 end
 
---- Drop current file from aider
 function M.drop_file()
   local filename = vim.fn.expand("%")
-  terminal.send("/drop " .. filename, true) -- 使用局部變數 terminal
+  tmux.send("/drop " .. filename)
+end
+
+function M.readonly()
+  local filename = vim.fn.expand("%")
+  tmux.send("/read-only " .. filename)
 end
 
 return M
