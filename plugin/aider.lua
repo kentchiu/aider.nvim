@@ -77,7 +77,10 @@ end, {
   desc = "Select the Aider tmux pane (asynchronous)",
 })
 
-vim.api.nvim_create_user_command("AiderTest", function(opts) end, {
+vim.api.nvim_create_user_command("AiderTest", function(opts)
+  print("🟥[181]: aider.lua:81 (after vim.api.nvim_create_user_command(AiderTe…)")
+  require("aider").models()
+end, {
   nargs = "*",
   desc = "Prompt for input and send to selected Aider pane",
 })

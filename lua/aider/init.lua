@@ -53,6 +53,10 @@ function M.no()
   tmux.send("No")
 end
 
+function M.models()
+  actions.models()
+end
+
 _G.dd = function(...)
   Snacks.debug.inspect(...)
 end

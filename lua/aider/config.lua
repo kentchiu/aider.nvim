@@ -3,7 +3,7 @@
 
 ---@class AiderConfig
 ---@field logger AiderConfig.Logger # 日誌記錄器配置.
----@field models string[] # 常用模型列表.
+---@field models {model: string, description: string}[] # 常用模型列表.
 local M = {
   --- 預設配置值。
   --- 如果未被用戶選項或專案特定配置覆蓋，則使用這些值。
@@ -13,15 +13,35 @@ local M = {
       level = "INFO", -- 預設日誌級別
     },
     -- 常用模型
+    -- stylua: ignore
     models = {
-      "openrouter/google/gemini-2.0-flash-001",
-      "openrouter/google/gemini-2.0-flash-exp:free",
-      "openrouter/google/gemini-2.5-pro-exp-03-25",
-      "openrouter/google/gemini-2.5-pro-preview-03-25",
-      "vertex_ai-language-models/openrouter/google/gemini-2.5-pro-preview-03-25",
-      "openrouter/google/gemini-2.5-pro-exp-03-25",
-      "gemini/gemini-2.5-pro-preview-05-06",
-      "gemini/gemini-2.5-flash-preview-05-20",
+      { model = "openrouter/openai/o3-mini", description = "o3-min" },
+      { model = "openrouter/google/gemini-2.0-flash-001", description = "gemini 2.0 flash" },
+      { model = "openrouter/google/gemini-2.0-flash-exp:free", description = "gemini 2.0 flash exp free" },
+      { model = "openrouter/google/gemini-2.5-pro-exp-03-25", description = "gemini 2.5 pro exp 03-25" },
+      { model = "openrouter/google/gemini-2.5-pro-preview-03-25", description = "gemini 2.5 pro preview 03-25" },
+      { model = "vertex_ai-language-models/openrouter/google/gemini-2.5-pro-preview-03-25", description = "gemini 2.5 pro preview 03-25 (vertex)" },
+      { model = "openrouter/google/gemini-2.5-pro-exp-03-25", description = "gemini 2.5 pro exp 03-25" },
+      { model = "gemini/gemini-2.5-pro-preview-05-06", description = "gemini 2.5 pro preview 05-06" },
+      { model = "gemini/gemini-2.5-flash-preview-05-20", description = "gemini 2.5 flash preview 05-20" },
+      { model = "openrouter/anthropic/claude-3.5-sonnet", description = "claude-3.5-sonnet" },
+      { model = "openrouter/anthropic/claude-3.7-sonnet", description = "claude-3.7-sonnet" },
+      { model = "openrouter/deepseek/deepseek-chat", description = "deepseek-chat" },
+      { model = "openrouter/deepseek/deepseek-chat-v3-0324", description = "deepseek-chat-v3-0324" },
+      { model = "openrouter/deepseek/deepseek-chat-v3-0324:free", description = "deepseek-chat-v3-0324:free" },
+      { model = "openrouter/deepseek/deepseek-chat:free", description = "deepseek-chat:free" },
+      { model = "openrouter/deepseek/deepseek-coder", description = "deepseek-coder" },
+      { model = "openrouter/deepseek/deepseek-r1", description = "deepseek-r1" },
+      { model = "openrouter/deepseek/deepseek-r1:free", description = "deepseek-r1:free" },
+      { model = "openrouter/openai/gpt-4", description = "gpt-4" },
+      { model = "openrouter/openai/gpt-4o", description = "gpt-4o" },
+      { model = "openrouter/openai/gpt-4o-2024-05-13", description = "gpt-4o-2024-05-13" },
+      { model = "openrouter/openai/gpt-4o-mini", description = "gpt-4o-mini" },
+      { model = "openrouter/openai/o1", description = "o1" },
+      { model = "openrouter/openai/o1-mini", description = "o1-mini" },
+      { model = "openrouter/openai/o3-mini", description = "o3-mini" },
+      { model = "openrouter/openai/o3-mini-high", description = "o3-mini-high" },
+      { model = "openrouter/qwen/qwen-2.5-coder-32b-instruct", description = "qwen-2.5-coder-32b-instruct" },
     },
   },
 

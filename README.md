@@ -4,6 +4,7 @@ An AI-assisted coding plugin for Neovim that seamlessly sends information from y
 
 ## TODO
 
+- [ ] image selector
 - [x] setup debug log and disable by default.
 - [x] ~~save current state (model, file list presistant)~~ => use lua config
 - [x] add current as readonly
@@ -20,8 +21,8 @@ An AI-assisted coding plugin for Neovim that seamlessly sends information from y
 - [x] show diagnostic in dialog before fix
 - [ ] aider command in dialog
 - [ ] forward aider confirmation to neovim ui
-- [ ] show diff
-- [ ] watching only aider is enabled or setup
+- [x] ~~show diff~~
+- [x] watching only aider is enabled or setup
 - [x] sync buffers list to watch handler (active only)
 - [x] send current file
 - [x] watching file change
