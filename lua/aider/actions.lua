@@ -4,20 +4,73 @@ local util = require("aider.util")
 
 local M = {}
 
----@param message string
+---@param message? string
 function M.fix(message)
-  tmux.send("/fix " .. message)
+  local lines, line_start, line_end = util.get_visual_selection()
+  local diagnostics = {}
+  local code
+
+  if lines then
+    -- Visual selection exists, get diagnostics for the selection
+    for i = line_start, line_end do
+      local line_diagnostics = vim.diagnostic.get(0, { lnum = i })
+      for _, diagnostic in ipairs(line_diagnostics) do
+        table.insert(diagnostics, diagnostic)
+      end
+    end
+    code = lines
+  else
+    -- No visual selection, get diagnostics for the current line
+    line_start = vim.api.nvim_win_get_cursor(0)[1] - 1 -- 0-based line number
+    line_end = line_start + 1
+    diagnostics = vim.diagnostic.get(0, { lnum = line_start, end_lnum = line_end }) -- Use 0-based line number for diagnostics
+    code = vim.api.nvim_buf_get_lines(0, line_start, line_end, false)[1]
+  end
+
+  if #diagnostics > 0 then
+    local content = ""
+    local filename = vim.fn.expand("%:.")
+    content = content .. util.template_code(code, vim.bo.filetype, line_start, line_end, filename) .. "\n\n"
+    for _, diagnostic in ipairs(diagnostics) do
+      content = content
+        .. "For the code present, we get this error: \n\n"
+        .. util.template_code(diagnostic.message)
+        .. "\n"
+      break -- only show 1 diagnostic
+    end
+    content = content .. "---\n"
+    content = content .. "How can I resolve this? If you propose a fix, please make it concise.\n"
+    content = content .. "\n\n"
+    require("aider.dialog").toggle({ content = content })
+    vim.api.nvim_command("stopinsert")
+  else
+    vim.notify("No diagnostics for current selection/line")
+  end
 end
 
 ---@param content string
 function M.send(content)
-  tmux.send(content)
+  if content then
+    tmux.send(content)
+  end
 end
 
 ---@param opts? { direction: "left" | "right" | "up" | "down" }
 function M.dialog(opts)
+  local mode = vim.api.nvim_get_mode().mode
+  local lines, line_start, line_end = util.get_visual_selection()
+  if mode == "n" then
+    lines = nil
+  end
+
   local dialog = require("aider.dialog")
-  dialog.toggle(opts)
+  if lines then
+    local fullpath = vim.fn.expand("%:p")
+    local filetype = vim.bo.filetype
+    dialog.toggle({ content = util.template_code(lines, filetype, line_start, line_end, fullpath) })
+  else
+    dialog.toggle({ content = "" })
+  end
 end
 
 function M.add_file()
