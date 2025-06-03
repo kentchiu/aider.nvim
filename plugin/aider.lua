@@ -61,6 +61,20 @@ end, {
   desc = "Test Terminal Buffer",
 })
 
+vim.api.nvim_create_user_command("AiderModels", function(opts)
+  require("aider").models()
+end, {
+  nargs = "*",
+  desc = "Test Terminal Buffer",
+})
+
+vim.api.nvim_create_user_command("AiderHistory", function(opts)
+  require("aider").history()
+end, {
+  nargs = "*",
+  desc = "Commnad History",
+})
+
 vim.api.nvim_create_user_command("AiderStart", function(opts)
   local tmux = require("aider.tmux")
   vim.ui.input({ prompt = "Enter text to send to Aider pane:" }, function(input)
@@ -79,7 +93,7 @@ end, {
 
 vim.api.nvim_create_user_command("AiderTest", function(opts)
   print("🟥[181]: aider.lua:81 (after vim.api.nvim_create_user_command(AiderTe…)")
-  require("aider").models()
+  require("aider").history()
 end, {
   nargs = "*",
   desc = "Prompt for input and send to selected Aider pane",
@@ -100,3 +114,5 @@ vim.keymap.set("n", "<leader>a+", "<cmd>AiderAddFile<cr>", { desc = "Add Current
 vim.keymap.set("n", "<leader>a-", "<cmd>AiderDropFile<cr>", { desc = "Drop Current File" })
 vim.keymap.set("n", "<leader>a*", "<cmd>AiderAddFiles<cr>", { desc = "Add Files" })
 vim.keymap.set("n", "<leader>ar", "<cmd>AiderReadonly<cr>", { desc = "Add Current File as readonly" })
+vim.keymap.set("n", "<leader>am", "<cmd>AiderModel<cr>", { desc = "Select LLM Model" })
+vim.keymap.set("n", "<leader>ah", "<cmd>AiderHistory<cr>", { desc = "History" })

@@ -57,6 +57,10 @@ function M.models()
   actions.models()
 end
 
+function M.history()
+  actions.history()
+end
+
 _G.dd = function(...)
   Snacks.debug.inspect(...)
 end

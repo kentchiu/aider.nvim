@@ -169,4 +169,113 @@ function M.models()
   })
 end
 
+function M.history()
+  local project_root_markers = { ".git" } -- 可以添加其他标记，如 .project_root_file
+  local current_buf_path = vim.api.nvim_buf_get_name(0)
+  local project_root_path =
+    vim.fs.find(project_root_markers, { path = vim.fn.fnamemodify(current_buf_path, ":h"), upward = true })
+
+  local history_file_path
+  if project_root_path and #project_root_path > 0 then
+    -- project_root_path 返回的是包含标记的目录列表，取第一个
+    local root_dir = vim.fn.fnamemodify(project_root_path[1], ":h")
+    history_file_path = root_dir .. "/.aider.input.history"
+  else
+    -- 如果找不到项目根目录，尝试使用用户主目录下的文件
+    history_file_path = vim.fn.expand("~/.aider.input.history")
+    vim.notify(
+      "Project root not found. Falling back to history file in home directory: " .. history_file_path,
+      vim.log.levels.WARN
+    )
+  end
+
+  local lines = {}
+  local file = io.open(history_file_path, "r")
+
+  if not file then
+    vim.notify("History file not found: " .. history_file_path, vim.log.levels.ERROR)
+    return
+  end
+
+  local file_content = file:read("*a")
+  file:close() -- Close file immediately after reading all content
+
+  local current_command_buffer = {}
+  local processing_command = false -- True if we are after a '#' line and collecting command lines
+
+  -- Split the entire file content into lines for processing.
+  -- {plain = true} ensures '\n' is treated literally.
+  -- {trimempty = false} ensures that empty lines within a multi-line command are preserved.
+  local file_lines_list = vim.split(file_content, "\n", { plain = true, trimempty = false })
+
+  for _, line_text in ipairs(file_lines_list) do
+    if line_text:match("^#") then -- Line starts with '#', indicating a new command block follows.
+      if processing_command and #current_command_buffer > 0 then
+        -- If there's a command in the buffer, process and add it.
+        local cmd_str = table.concat(current_command_buffer, "\n")
+        -- Trim leading/trailing whitespace from the entire multi-line command.
+        cmd_str = cmd_str:gsub("^%s+", ""):gsub("%s+$", "")
+        if cmd_str ~= "" then
+          table.insert(lines, cmd_str)
+        end
+      end
+      current_command_buffer = {} -- Reset buffer for the new command.
+      processing_command = true   -- Start collecting lines for the new command.
+    elseif processing_command then
+      -- If we are in a command block (after a '#'), add the line to the buffer.
+      -- Remove leading '+' if present, as it's not part of the command itself.
+      local processed_line = line_text
+      if processed_line:match("^%+") then
+        processed_line = processed_line:sub(2) -- Get substring from the second character onwards
+      end
+      table.insert(current_command_buffer, processed_line)
+    end
+  end
+
+  -- After the loop, process any remaining command in the buffer (for the last command in the file).
+  if processing_command and #current_command_buffer > 0 then
+    local cmd_str = table.concat(current_command_buffer, "\n")
+    cmd_str = cmd_str:gsub("^%s+", ""):gsub("%s+$", "")
+    if cmd_str ~= "" then
+      table.insert(lines, cmd_str)
+    end
+  end
+
+  if #lines == 0 then
+    vim.notify("No command history found in " .. history_file_path, vim.log.levels.INFO)
+    return
+  end
+
+  local picker_items = {}
+  for i, line_content in ipairs(lines) do
+    table.insert(picker_items, {
+      idx = i,
+      text = line_content,
+      command = line_content, -- Store the original command
+      score = 0,
+    })
+  end
+
+  local snacks = require("snacks")
+  snacks.picker.pick({
+    title = "Select a Command from History",
+    items = picker_items,
+    format = function(item, _)
+      return {
+        { item.text, "String" },
+      }
+    end,
+    preview = function(ctx)
+      ctx.preview:set_lines({ ctx.item.command })
+      return false
+    end,
+    confirm = function(picker, item, _)
+      if item and item.command then
+        tmux.send(item.command)
+      end
+      picker:close()
+    end,
+  })
+end
+
 return M
