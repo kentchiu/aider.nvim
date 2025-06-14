@@ -23,6 +23,7 @@ local M = {
       { model = "vertex_ai-language-models/openrouter/google/gemini-2.5-pro-preview-03-25", description = "gemini 2.5 pro preview 03-25 (vertex)" },
       { model = "openrouter/google/gemini-2.5-pro-exp-03-25", description = "gemini 2.5 pro exp 03-25" },
       { model = "gemini/gemini-2.5-pro-preview-05-06", description = "gemini 2.5 pro preview 05-06" },
+      { model = "gemini/gemini-2.5-pro-preview-06-05", description = "gemini 2.5 pro preview 06-05" },
       { model = "gemini/gemini-2.5-flash-preview-05-20", description = "gemini 2.5 flash preview 05-20" },
       { model = "openrouter/anthropic/claude-3.5-sonnet", description = "claude-3.5-sonnet" },
       { model = "openrouter/anthropic/claude-3.7-sonnet", description = "claude-3.7-sonnet" },
