@@ -113,7 +113,12 @@ function M.drop_file()
 end
 
 function M.readonly()
-  tmux.send("/readonly")
+  local filename = vim.fn.expand("%:p")
+  if filename and filename ~= "" then
+    tmux.send("/read-only " .. filename)
+  else
+    vim.notify("無法獲取當前檔案名。", vim.log.levels.WARN)
+  end
 end
 
 function M.yes()
@@ -220,7 +225,7 @@ function M.history()
         end
       end
       current_command_buffer = {} -- Reset buffer for the new command.
-      processing_command = true   -- Start collecting lines for the new command.
+      processing_command = true -- Start collecting lines for the new command.
     elseif processing_command then
       -- If we are in a command block (after a '#'), add the line to the buffer.
       -- Remove leading '+' if present, as it's not part of the command itself.
