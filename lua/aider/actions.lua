@@ -261,6 +261,13 @@ function M.history()
     })
   end
 
+  -- Reverse the picker_items to show newest first
+  local reversed_picker_items = {}
+  for i = #picker_items, 1, -1 do
+    table.insert(reversed_picker_items, picker_items[i])
+  end
+  picker_items = reversed_picker_items
+
   local snacks = require("snacks")
   snacks.picker.pick({
     title = "Select a Command from History",
